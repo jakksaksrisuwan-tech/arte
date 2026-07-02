@@ -6,6 +6,9 @@ members = ["viewer/core", "viewer/tui"]
 name = "arte"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+repository = "https://github.com/jakksaksrisuwan-tech/arte"
+readme = "README.md"
 description = "Design-truth primitive: an id-keyed node graph (intent → impl → control → validation), one node per file, line-oriented, git-native merge."
 
 # No dependencies on purpose. The primitive is plain text + git; the tool is a thin

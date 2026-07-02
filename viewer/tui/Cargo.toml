@@ -2,6 +2,8 @@
 name = "arte-tui"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+repository = "https://github.com/jakksaksrisuwan-tech/arte"
 description = "Terminal client for the design-truth board (renders the arte-core board model with Ratatui)."
 
 # `arte view` delegates to this binary.
@@ -10,7 +12,7 @@ name = "arte-tui"
 path = "src/main.rs"
 
 [dependencies]
-arte-core = { path = "../core" }
+arte-core = { path = "../core", version = "0.1.0" }
 ratatui = "0.29"
 crossterm = "0.28"
 anyhow = "1"

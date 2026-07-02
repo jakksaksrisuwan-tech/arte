@@ -2,6 +2,8 @@
 name = "arte-core"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+repository = "https://github.com/jakksaksrisuwan-tech/arte"
 description = "Design-truth board core: validated wire model, state, agent, sync. Presentation-free — any client renders it."
 
 [dependencies]
