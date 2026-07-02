@@ -1,0 +1,13 @@
+[workspace]
+resolver = "2"
+members = ["viewer/core", "viewer/tui"]
+
+[package]
+name = "arte"
+version = "0.1.0"
+edition = "2021"
+description = "Design-truth primitive: an id-keyed node graph (intent → impl → control → validation), one node per file, line-oriented, git-native merge."
+
+# No dependencies on purpose. The primitive is plain text + git; the tool is a thin
+# reference reader/writer. Add deps only when a feature genuinely needs one.
+[dependencies]

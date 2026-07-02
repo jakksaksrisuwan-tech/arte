@@ -1,0 +1,5 @@
+id: c4
+role: control
+subset: agnostic
+title: Layers and subsets come from arte.toml, so the tool stays agnostic
+serves: i4

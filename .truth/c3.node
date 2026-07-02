@@ -1,0 +1,5 @@
+id: c3
+role: control
+subset: format
+title: Line-oriented key:value, so git's line merge reconciles per field
+serves: i3

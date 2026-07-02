@@ -1,0 +1,4 @@
+# arte — design-truth primitive
+# The role chain: every node declares one role; coverage/trace walk this order.
+# Rename freely for your domain (e.g. requirement/design/firmware/test).
+chain = ["intent", "impl", "control", "validation"]

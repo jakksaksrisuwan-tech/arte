@@ -1,0 +1,5 @@
+id: c2
+role: control
+subset: storage
+title: One node per file; git merges per node natively
+serves: i3

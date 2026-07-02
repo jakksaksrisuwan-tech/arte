@@ -1,0 +1,16 @@
+[package]
+name = "arte-core"
+version = "0.1.0"
+edition = "2021"
+description = "Design-truth board core: validated wire model, state, agent, sync. Presentation-free — any client renders it."
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+schemars = "0.8"
+anyhow = "1"
+thiserror = "2"
+
+# locale-aware date (strftime "%x"); already in the tree transitively
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"

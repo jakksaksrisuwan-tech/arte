@@ -1,0 +1,4 @@
+{"type":"CreateSurface","id":"ocr","title":"OCR Pipeline","root":{"type":"Panel","id":"root","title":"Pipeline Control","layout":"Vertical","children":[{"type":"Metric","id":"pages","label":"Pages processed","value":"128"},{"type":"Progress","id":"progress","label":"Batch progress","value":0.62},{"type":"Table","id":"stages","columns":["Stage","Status","Latency"],"rows":[["Layout","ok","320ms"],["OCR","warning","2.1s"],["Validation","ok","180ms"]]},{"type":"Log","id":"logs","lines":["Started batch","Detected 42 pages","OCR warning on page 17"]}]}}
+{"type":"UpdateNode","surface_id":"ocr","node_id":"progress","patch":{"progress":0.74}}
+{"type":"UpdateNode","surface_id":"ocr","node_id":"pages","patch":{"value":"152"}}
+{"type":"UpdateNode","surface_id":"ocr","node_id":"logs","patch":{"lines":["Started batch","Detected 42 pages","OCR warning on page 17","Revalidated page 17","Batch 74% complete"]}}

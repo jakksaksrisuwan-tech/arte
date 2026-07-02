@@ -1,0 +1,4 @@
+id: i4
+role: intent
+subset: constraints
+title: Domain-agnostic: roles and subsets are declared, not hardcoded
