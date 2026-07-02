@@ -103,10 +103,15 @@ arte view                         # watch it live (arte-tui TUI, optional)
 
 ## Install
 
-Not yet published — build from source (one clone builds the whole package):
+```sh
+cargo install arte            # the board tool
+cargo install arte-tui        # the optional viewer (`arte view` launches it)
+```
+
+Or from source (one clone builds the whole package):
 
 ```sh
-git clone <this repo> && cd arte
+git clone https://github.com/jakksaksrisuwan-tech/arte && cd arte
 cargo build --release --workspace
 cp target/release/arte target/release/arte-tui ~/.local/bin/
 ```
