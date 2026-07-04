@@ -94,6 +94,10 @@ COMMANDS:
   isolate  arte role <role> -- <cmd>  run <cmd> under a role's write-isolation
 
 START: run `arte observe` to read the board, then MAP your work before building it.
+  Your role: if the ARTE_ROLE env var is set (you were launched via `arte role X --`),
+  that is your lane — observe announces it. If it is NOT set, you enter as the
+  SPECIFIER (phase one): map first, and hand testing/implementation to their roles
+  (subagents if you have them, later phases if you don't).
 
 filling guide (software) — decompose to BEHAVIOR or reproductions diverge:
 • break each frontend component (impl) into INTERACTIONS via `parent` — one

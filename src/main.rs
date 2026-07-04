@@ -900,16 +900,31 @@ fn sandbox_profile(deny_dirs: &[&str]) -> Option<String> {
     Some(format!("(version 1)(allow default)(deny file-write* {subs})"))
 }
 fn run_isolated(deny_dirs: &[&str], program: &str, args: &[&str]) -> std::io::Result<std::process::ExitStatus> {
+    run_isolated_as(None, deny_dirs, program, args)
+}
+
+/// Like run_isolated, but also announces the role to the child via ARTE_ROLE —
+/// so an agent launched inside `arte role X -- <agent>` KNOWS its lane instead of
+/// discovering it by hitting `Operation not permitted`.
+fn run_isolated_as(role: Option<&str>, deny_dirs: &[&str], program: &str, args: &[&str]) -> std::io::Result<std::process::ExitStatus> {
     use std::process::Command;
     if let Some(profile) = sandbox_profile(deny_dirs) {
         let mut c = Command::new("sandbox-exec");
         c.arg("-p").arg(&profile).arg(program).args(args);
+        if let Some(r) = role {
+            c.env("ARTE_ROLE", r);
+        }
         if let Ok(s) = c.status() {
             return Ok(s);
         }
     }
     eprintln!("warn: sandbox-exec unavailable — running WITHOUT capability isolation");
-    Command::new(program).args(args).status()
+    let mut c = Command::new(program);
+    c.args(args);
+    if let Some(r) = role {
+        c.env("ARTE_ROLE", r);
+    }
+    c.status()
 }
 
 /// `arte role <role> -- <command...>` — run a command under that role's write
@@ -926,7 +941,7 @@ fn cmd_role() {
         std::process::exit(2);
     }
     let cmd = args[sep + 1..].join(" ");
-    let code = run_isolated(deny, "sh", &["-c", &cmd]).ok().and_then(|s| s.code()).unwrap_or(1);
+    let code = run_isolated_as(Some(&role), deny, "sh", &["-c", &cmd]).ok().and_then(|s| s.code()).unwrap_or(1);
     std::process::exit(code);
 }
 
@@ -1107,6 +1122,10 @@ COMMANDS:
   isolate  arte role <role> -- <cmd>  run <cmd> under a role's write-isolation
 
 START: run `arte observe` to read the board, then MAP your work before building it.
+  Your role: if the ARTE_ROLE env var is set (you were launched via `arte role X --`),
+  that is your lane — observe announces it. If it is NOT set, you enter as the
+  SPECIFIER (phase one): map first, and hand testing/implementation to their roles
+  (subagents if you have them, later phases if you don't).
 "#;
 
 /// Software-specific filling discipline — printed on `init --template software`.
@@ -1274,6 +1293,15 @@ struct Disp {
 /// flagging dangling links (a `serves`/`parent` id that exists nowhere).
 fn observe() {
     let conf = read_conf();
+    // role banner: an agent inside `arte role X -- …` is TOLD its lane up front;
+    // with NO role set, first contact defaults to SPECIFIER (phase one — map first).
+    match std::env::var("ARTE_ROLE") {
+        Ok(role) => {
+            let deny = role_deny_dirs(&role);
+            println!("▶ your role: {role}  (write-isolated from: {})\n", if deny.is_empty() { "—".into() } else { deny.join(", ") });
+        }
+        Err(_) => println!("▶ your role: specifier (default — no ARTE_ROLE set). Map the board first;\n  hand test-writing and src changes to their roles (subagents or later phases).\n"),
+    }
     let nodes = all_nodes(); // shared loader: also emits the filename≠id warning
     if nodes.is_empty() {
         suggest_bootstrap(); // agent's read channel is empty → tell it how to move forward
