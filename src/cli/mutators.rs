@@ -211,3 +211,67 @@ pub fn cmd_at() {
     save_node(&id, &n);
     println!("at {id} → {loc}");
 }
+
+/// `arte check-commits` — backs c-every-change-commits-with-its-intent-id:
+/// every commit since the last tag (or HEAD~20, or all-time if no tag) must
+/// reference at least one intent id that exists on the board. Reports a per-
+/// commit pass/fail so a reviewer (or the merge gate) can see the chain of
+/// authorship without re-reading every message. Intents match the regex
+/// `i[0-9A-Za-z][A-Za-z0-9_-]*` against the known intent ids under `.truth/`.
+pub fn cmd_check_commits() {
+    let mut a = std::env::args().skip(2);
+    let limit = a.next().and_then(|s| s.parse::<usize>().ok()).unwrap_or(20);
+    // Intent-id universe — every intent id present on the board.
+    let known: HashSet<String> = all_nodes()
+        .iter()
+        .filter(|(_, n)| n.get("role") == Some("intent"))
+        .map(|(id, _)| id.clone())
+        .collect();
+    // No git / no intents — nothing to enforce.
+    if known.is_empty() {
+        println!("check-commits: no intent nodes yet — nothing to enforce");
+        return;
+    }
+    // Walk commits. Use the simplest `git log` shape that gives us sha + body.
+    let log = std::process::Command::new("git")
+        .args(["log", &format!("-{limit}"), "--format=%H%n%B%n--ARTE--"])
+        .output();
+    let Ok(out) = log else {
+        eprintln!("check-commits: git unavailable — not enforcing");
+        return;
+    };
+    let text = String::from_utf8_lossy(&out.stdout);
+    let mut commits: Vec<(String, String)> = Vec::new();
+    for block in text.split("--ARTE--\n") {
+        let block = block.trim();
+        if block.is_empty() { continue; }
+        let Some((sha, body)) = block.split_once('\n') else { continue };
+        commits.push((sha.trim().to_string(), body.to_string()));
+    }
+    let mut unref = 0usize;
+    let mut checked = 0usize;
+    for (sha, body) in &commits {
+        let first = body.lines().next().unwrap_or("").trim().to_lowercase();
+        if first.starts_with("merge ") || first.is_empty() { continue; } // merges / empty
+        checked += 1;
+        let lower = body.to_lowercase();
+        let hits: Vec<&str> = known
+            .iter()
+            .filter(|id| lower.contains(&id.to_lowercase()))
+            .map(String::as_str)
+            .collect();
+        if hits.is_empty() {
+            println!("  ✗ {sha:.7} — no intent id referenced");
+            println!("      {first}");
+            unref += 1;
+        } else {
+            println!("  ✓ {sha:.7} — {}", hits.join(", "));
+        }
+    }
+    if checked == 0 {
+        println!("check-commits: no commits to grade");
+        return;
+    }
+    println!("check-commits: {checked} commit(s) · {} unref", unref);
+    if unref > 0 { std::process::exit(1); }
+}

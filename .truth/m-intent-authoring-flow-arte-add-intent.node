@@ -1,0 +1,8 @@
+id: m-intent-authoring-flow-arte-add-intent
+role: impl
+subset: cli
+title: Intent authoring flow (arte add intent)
+serves: i3a
+name: tbd
+note: ponytail: stub impl, fill in when ready
+at: src/cli/mutators.rs#cmd_add

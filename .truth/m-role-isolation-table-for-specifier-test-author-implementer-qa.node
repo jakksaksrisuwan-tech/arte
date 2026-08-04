@@ -1,0 +1,8 @@
+id: m-role-isolation-table-for-specifier-test-author-implementer-qa
+role: impl
+subset: core
+title: Role-isolation table for specifier/test-author/implementer/QA lanes
+serves: i1
+name: tbd
+note: ponytail: stub impl, fill in when ready
+at: src/lib.rs#role_deny_dirs

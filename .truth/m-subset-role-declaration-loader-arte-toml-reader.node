@@ -1,0 +1,8 @@
+id: m-subset-role-declaration-loader-arte-toml-reader
+role: impl
+subset: core
+title: Subset/role declaration loader (arte.toml reader)
+serves: i4
+name: tbd
+note: ponytail: stub impl, fill in when ready
+at: src/lib.rs#read_conf

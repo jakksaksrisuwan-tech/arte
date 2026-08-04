@@ -50,6 +50,7 @@ fn main() {
         Some("delete") | Some("rm") => cli::mutators::cmd_delete(),
         Some("working") | Some("focus") => cli::focus::cmd_working(),
         Some("at") => cli::mutators::cmd_at(),
+        Some("check-commits") => cli::mutators::cmd_check_commits(),
         Some("coverage") => cli::query::cmd_coverage(),
         Some("trace") => cli::query::cmd_trace(),
         Some("show") => cli::query::cmd_show(),

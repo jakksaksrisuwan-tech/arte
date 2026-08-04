@@ -1,0 +1,8 @@
+id: m-shared-design-truth-board-that-every-lane-reads-from
+role: impl
+subset: core
+title: Shared design-truth board that every lane reads from
+serves: i2
+name: tbd
+note: ponytail: stub impl, fill in when ready
+at: src/lib.rs#read_conf

@@ -1,0 +1,8 @@
+id: m-verify-pipeline-that-re-derives-status-from-tests
+role: impl
+subset: cli
+title: Verify pipeline that re-derives status from tests
+serves: i3b
+name: tbd
+note: ponytail: stub impl, fill in when ready
+at: src/cli/verify.rs#verify_pass
