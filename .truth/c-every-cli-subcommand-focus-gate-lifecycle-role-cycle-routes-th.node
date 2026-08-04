@@ -1,0 +1,12 @@
+id: c-every-cli-subcommand-focus-gate-lifecycle-role-cycle-routes-th
+role: control
+subset: subset
+title: Every CLI subcommand (focus/gate/lifecycle/role/cycle/...) routes through the dispatcher
+serves: i5
+serves: m-arte-dispatcher
+serves: m-cli-module-wiring
+serves: m-impl-arte-focus
+serves: m-impl-arte-gate
+serves: m-impl-arte-lifecycle
+serves: m-impl-arte-role
+status: ok

@@ -3,3 +3,4 @@ role: control
 subset: identity
 title: A node is keyed by a stable id, never by its title
 serves: i3
+status: ok

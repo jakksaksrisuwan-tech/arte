@@ -1,0 +1,9 @@
+id: v-line-oriented-format-lets-git-reconcile-per-field
+role: validation
+subset: proof
+parent: c3
+title: Line-oriented format lets git reconcile per-field
+serves: c3
+at: tests/tool_design.rs
+status: ok
+sha: ffe5263

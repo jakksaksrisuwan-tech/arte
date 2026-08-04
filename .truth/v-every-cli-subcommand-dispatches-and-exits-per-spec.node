@@ -1,0 +1,8 @@
+id: v-every-cli-subcommand-dispatches-and-exits-per-spec
+role: validation
+subset: proof
+title: Every CLI subcommand dispatches and exits per spec
+serves: c-every-cli-subcommand-focus-gate-lifecycle-role-cycle-routes-th
+at: tests/cli_surface.rs
+status: ok
+sha: ffe5263

@@ -1,0 +1,8 @@
+id: v-every-role-lane-text-and-the-agent-guide-state-the-commit-prot
+role: validation
+subset: proof
+title: Every role lane text and the agent guide state the commit protocol
+serves: c-embedded-role-briefs-carry-the-commit-protocol-workers-never-c
+at: tests/brief_protocol.rs
+status: ok
+sha: ffe5263

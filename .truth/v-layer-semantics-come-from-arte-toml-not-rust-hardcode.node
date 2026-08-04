@@ -1,0 +1,9 @@
+id: v-layer-semantics-come-from-arte-toml-not-rust-hardcode
+role: validation
+subset: proof
+parent: c4
+title: Layer semantics come from arte.toml, not Rust hardcode
+serves: c4
+at: tests/tool_design.rs
+status: ok
+sha: ffe5263

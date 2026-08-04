@@ -1,0 +1,9 @@
+id: v-node-identity-filename-not-title
+role: validation
+subset: proof
+parent: c1
+title: Node identity = filename, not title
+serves: c1
+at: tests/tool_design.rs
+status: ok
+sha: ffe5263

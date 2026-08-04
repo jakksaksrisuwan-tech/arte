@@ -4,3 +4,5 @@ subset: enforcement
 title: Status is derived from test runs (arte verify), never hand-asserted
 serves: i3b
 status: ok
+serves: m-verify-pipeline-that-re-derives-status-from-tests
+serves: m1

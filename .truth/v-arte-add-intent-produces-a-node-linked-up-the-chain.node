@@ -1,0 +1,8 @@
+id: v-arte-add-intent-produces-a-node-linked-up-the-chain
+role: validation
+subset: proof
+title: arte-add-intent produces a node linked up the chain
+serves: c-arte-add-intent-mints-a-new-node-with-at-least-one-serves-link
+at: tests/cli_surface.rs
+status: ok
+sha: ffe5263

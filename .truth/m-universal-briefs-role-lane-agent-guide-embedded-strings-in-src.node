@@ -1,0 +1,6 @@
+id: m-universal-briefs-role-lane-agent-guide-embedded-strings-in-src
+role: impl
+subset: TBD
+title: Universal briefs: role_lane + AGENT_GUIDE embedded strings in src/lib.rs
+serves: i-subagent-lane-discipline-is-enforced-at-spawn-time-not-discove
+at: src/lib.rs

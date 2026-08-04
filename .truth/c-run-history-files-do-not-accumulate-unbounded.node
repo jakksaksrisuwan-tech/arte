@@ -4,3 +4,4 @@ subset: core
 title: Run history files do not accumulate unbounded
 serves: m-env-var-reader
 note: qa/runs/ is bounded by the stable-pass window (5 per validation). Older run files are pruned on each `arte verify`.
+status: ok

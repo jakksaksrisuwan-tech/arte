@@ -1,0 +1,8 @@
+id: v-role-isolation-deny-list-covers-src-tests-truth-qa-tests
+role: validation
+subset: proof
+title: Role-isolation deny-list covers src/tests/.truth/qa-tests
+serves: c-role-isolation-table-is-the-os-enforced-deny-list-per-lane
+at: tests/cli_surface.rs
+status: ok
+sha: ffe5263

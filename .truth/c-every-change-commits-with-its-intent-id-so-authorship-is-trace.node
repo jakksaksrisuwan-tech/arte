@@ -4,3 +4,4 @@ subset: subset
 title: Every change commits with its intent id so authorship is traceable to the why
 serves: i3a
 status: ok
+serves: m-shared-design-truth-board-that-every-lane-reads-from

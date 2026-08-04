@@ -1,0 +1,7 @@
+id: c-embedded-role-briefs-carry-the-commit-protocol-workers-never-c
+role: control
+subset: TBD
+title: Embedded role briefs carry the commit protocol - workers never commit, orchestrator audits then commits with intent id
+serves: i-subagent-lane-discipline-is-enforced-at-spawn-time-not-discove
+serves: m-universal-briefs-role-lane-agent-guide-embedded-strings-in-src
+status: ok

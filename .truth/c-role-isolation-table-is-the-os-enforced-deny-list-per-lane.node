@@ -1,0 +1,8 @@
+id: c-role-isolation-table-is-the-os-enforced-deny-list-per-lane
+role: control
+subset: subset
+title: Role-isolation table is the OS-enforced deny-list per lane
+serves: i1
+serves: m-role-isolation-table-for-specifier-test-author-implementer-qa
+status: ok
+note: DISPUTE: tests/cli_surface.rs#role_deny_dirs_covers_qa_tests_for_test_author is vacuous — it splits the source on the first '}' which lands past ALL match arms, so its required paths ('.truth', 'qa/tests') match the meta-planner arm, not test-author's. Actual test-author deny = [src, .truth/impls, .truth/controls] — but .truth/ is FLAT (no impls/ subdir), so those two entries deny nothing. Contradiction to resolve: control says deny covers {src, .truth, qa/tests}; role_lane says test-author OWNS validation nodes (needs .truth writes for arte at / add). Specifier must rule: either deny-list gains a real mechanism (e.g. allow only v-*.node writes) or the control's claim shrinks.

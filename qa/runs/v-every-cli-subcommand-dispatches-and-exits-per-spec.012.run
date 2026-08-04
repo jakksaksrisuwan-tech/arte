@@ -1,0 +1,5 @@
+validation: v-every-cli-subcommand-dispatches-and-exits-per-spec
+result: pass
+sha: ffe5263
+timestamp: 3996-08-04T12:19:43Z
+note: cargo test

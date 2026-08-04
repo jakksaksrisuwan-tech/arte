@@ -1,0 +1,7 @@
+id: c-arte-add-intent-mints-a-new-node-with-at-least-one-serves-link
+role: control
+subset: subset
+title: arte-add-intent mints a new node with at least one serves link up the chain
+serves: i3a
+serves: m-intent-authoring-flow-arte-add-intent
+status: ok
