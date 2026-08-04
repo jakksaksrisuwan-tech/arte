@@ -1,0 +1,6 @@
+id: m-env-var-reader
+role: impl
+subset: core
+title: Env var reader
+serves: i6
+at: src/lib.rs#read_env_dirs

@@ -16,11 +16,44 @@ use std::path::Path;
 /// argv and calls into these.
 pub mod cli;
 
-// ─── Board paths ────────────────────────────────────────────────────────────
+// ─── Board paths (env-overridable) ──────────────────────────────────────────
 
-pub const TRUTH_DIR: &str = ".truth";
-pub const RUNS_DIR: &str = "qa/runs";
-pub const DISPATCH_PATH: &str = ".loop-dispatch";
+/// Defaults for the env-overridable board paths. Honoured by `read_env_dirs`.
+pub const DEFAULT_TRUTH_DIR: &str = ".truth";
+pub const DEFAULT_RUNS_DIR: &str = "qa/runs";
+pub const DEFAULT_DISPATCH_PATH: &str = ".loop-dispatch";
+
+/// `(truth, runs, dispatch)` resolved from the env with CWD fallback. c-arte-respects-ARTE_TRUTH_DIR-env-var
+/// is the contract: every board read/write and dispatch emit must go through this
+/// so the binary is hermetic under test isolation.
+///
+/// Semantics:
+/// - `ARTE_TRUTH_DIR` is the CONCRETE truth directory. The binary reads and
+///   writes node files directly under it. When unset, it uses `./.truth/`.
+/// - `ARTE_RUNS_DIR` is the CONCRETE runs directory. When unset, it uses
+///   `./qa/runs/`.
+/// - `ARTE_DISPATCH_PATH` is the CONCRETE dispatch file path. When unset, it
+///   uses `./.loop-dispatch`.
+pub fn read_env_dirs() -> (String, String, String) {
+    let truth = std::env::var("ARTE_TRUTH_DIR")
+        .ok()
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| DEFAULT_TRUTH_DIR.to_string());
+    let runs = std::env::var("ARTE_RUNS_DIR")
+        .ok()
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| DEFAULT_RUNS_DIR.to_string());
+    let dispatch = std::env::var("ARTE_DISPATCH_PATH")
+        .ok()
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| DEFAULT_DISPATCH_PATH.to_string());
+    (truth, runs, dispatch)
+}
+
+/// Path accessors — read every time (env may change between calls in test contexts).
+pub fn truth_dir() -> String { read_env_dirs().0 }
+pub fn runs_dir() -> String { read_env_dirs().1 }
+pub fn dispatch_path() -> String { read_env_dirs().2 }
 
 /// Stable-pass threshold: how many of the most recent N runs must pass before
 /// `arte status <id> ok` is allowed without --force, and before `arte cycle`
@@ -95,7 +128,7 @@ impl Node {
 // ─── Board I/O ──────────────────────────────────────────────────────────────
 
 pub fn node_path(id: &str) -> String {
-    format!("{TRUTH_DIR}/{id}.node")
+    format!("{}/{}.node", truth_dir(), id)
 }
 
 pub fn write_node(id: &str, role: &str, subset: &str, parent: &str, title: &str, serves: &[&str]) {
@@ -111,7 +144,11 @@ pub fn write_node(id: &str, role: &str, subset: &str, parent: &str, title: &str,
     for s in serves {
         fields.push(("serves".into(), s.to_string()));
     }
-    if let Err(e) = fs::write(node_path(id), Node { fields }.to_text()) {
+    let path = node_path(id);
+    if let Some(p) = Path::new(&path).parent() {
+        let _ = fs::create_dir_all(p);
+    }
+    if let Err(e) = fs::write(&path, Node { fields }.to_text()) {
         eprintln!("error writing {id}: {e}");
         std::process::exit(1);
     }
@@ -124,7 +161,11 @@ pub fn load_node(id: &str) -> Option<Node> {
     fs::read_to_string(node_path(id)).ok().map(|t| Node::parse(&t))
 }
 pub fn save_node(id: &str, n: &Node) {
-    if let Err(e) = fs::write(node_path(id), n.to_text()) {
+    let path = node_path(id);
+    if let Some(parent) = Path::new(&path).parent() {
+        let _ = fs::create_dir_all(parent);
+    }
+    if let Err(e) = fs::write(&path, n.to_text()) {
         eprintln!("error writing {id}: {e}");
         std::process::exit(1);
     }
@@ -141,7 +182,7 @@ pub fn load_or_exit(id: &str) -> Node {
 /// once if a stored `id:` disagrees. This is the only place we scan `.truth`.
 pub fn all_nodes() -> Vec<(String, Node)> {
     let mut out = Vec::new();
-    let Ok(dir) = fs::read_dir(TRUTH_DIR) else { return out };
+    let Ok(dir) = fs::read_dir(truth_dir()) else { return out };
     for e in dir.flatten() {
         if e.path().extension().map(|x| x != "node").unwrap_or(true) {
             continue;
@@ -276,7 +317,8 @@ pub struct RunRec {
 }
 
 pub fn load_runs(v_id: &str) -> Vec<RunRec> {
-    let dir = Path::new(RUNS_DIR);
+    let binding = runs_dir();
+    let dir = Path::new(&binding);
     let Ok(rd) = fs::read_dir(dir) else { return Vec::new() };
     let prefix = format!("{v_id}.");
     let suffix = ".run";
@@ -310,20 +352,47 @@ pub fn stable_pass(runs: &[RunRec]) -> (usize, bool) {
 }
 
 pub fn write_run(v_id: &str, rec: &RunRec) -> std::io::Result<()> {
-    fs::create_dir_all(RUNS_DIR)?;
+    let dir = runs_dir();
+    fs::create_dir_all(&dir)?;
     let next = next_run_seq(v_id);
-    let path = Path::new(RUNS_DIR).join(format!("{v_id}.{next}.run"));
+    let path = Path::new(&dir).join(format!("{v_id}.{next}.run"));
     let mut n = Node { fields: Vec::new() };
     n.push_field("validation", v_id);
     n.push_field("result", &rec.result);
     if !rec.sha.is_empty() { n.push_field("sha", &rec.sha); }
     if !rec.timestamp.is_empty() { n.push_field("timestamp", &rec.timestamp); }
     if !rec.note.is_empty() { n.push_field("note", &rec.note); }
-    fs::write(path, n.to_text())
+    fs::write(&path, n.to_text())?;
+    prune_runs(Path::new(&dir), v_id, STABLE_PASS_WINDOW);
+    Ok(())
+}
+
+/// Drop oldest run files beyond `keep` per validation. Called from `write_run`
+/// and at the tail of `verify_pass` so the history stays bounded by the
+/// stable-pass window. c-run-history-files-do-not-accumulate-unbounded.
+pub fn prune_runs(runs_dir: &Path, v_id: &str, keep: usize) {
+    let Ok(rd) = fs::read_dir(runs_dir) else { return };
+    let prefix = format!("{v_id}.");
+    let suffix = ".run";
+    let mut entries: Vec<(String, u64)> = Vec::new();
+    for e in rd.flatten() {
+        let name = e.file_name().to_string_lossy().to_string();
+        if !name.starts_with(&prefix) || !name.ends_with(&suffix) { continue; }
+        let mtime = e.metadata().ok().and_then(|md| md.modified().ok())
+            .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        entries.push((e.path().to_string_lossy().to_string(), mtime));
+    }
+    // Sort newest first by mtime, then drop everything past `keep`.
+    entries.sort_by(|a, b| b.1.cmp(&a.1));
+    for (p, _) in entries.iter().skip(keep) {
+        let _ = fs::remove_file(p);
+    }
 }
 
 pub fn next_run_seq(v_id: &str) -> String {
-    let Ok(rd) = fs::read_dir(RUNS_DIR) else { return "001".into() };
+    let Ok(rd) = fs::read_dir(runs_dir()) else { return "001".into() };
     let prefix = format!("{v_id}.");
     let suffix = ".run";
     let mut max_n = 0u32;

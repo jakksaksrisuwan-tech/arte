@@ -19,7 +19,7 @@ pub fn cmd_cycle() {
         println!("\n── cycle round ──");
         // PULL — collapse per validation, look at the recent window
         let mut entries: Vec<(String, RunRec)> = Vec::new();
-        if let Ok(rd) = fs::read_dir(RUNS_DIR) {
+        if let Ok(rd) = fs::read_dir(runs_dir()) {
             for e in rd.flatten() {
                 let name = e.file_name().to_string_lossy().to_string();
                 if !name.ends_with(".run") { continue; }
@@ -77,8 +77,9 @@ pub fn cmd_cycle() {
         disp.push_field("next", &next);
         disp.push_field("target", &target);
         if !reason.is_empty() { disp.push_field("reason", &reason); }
-        if let Err(e) = fs::write(DISPATCH_PATH, disp.to_text()) {
-            eprintln!("could not write {}: {e} — orchestrator will see stale dispatch", DISPATCH_PATH);
+        let dp = dispatch_path();
+        if let Err(e) = fs::write(&dp, disp.to_text()) {
+            eprintln!("could not write {dp}: {e} — orchestrator will see stale dispatch");
         }
         println!("pull: {} validation(s) with run history", per.len());
         println!("classify: next={next} target={target}{}", if reason.is_empty() { String::new() } else { format!(" ({reason})") });

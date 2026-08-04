@@ -1,0 +1,8 @@
+id: v-arte-respects-ARTE_TRUTH_DIR-env-var
+role: validation
+subset: proof
+title: Arte respects ARTE_TRUTH_DIR env var
+serves: c-arte-respects-ARTE_TRUTH_DIR-env-var
+at: tests/test_isolation.rs
+status: ok
+sha: 85030f9

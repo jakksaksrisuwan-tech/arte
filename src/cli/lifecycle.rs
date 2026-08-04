@@ -37,11 +37,12 @@ pub fn cmd_init() {
         }
         println!("• wrote arte.toml (template: {tmpl})");
     }
-    if let Err(e) = fs::create_dir_all(TRUTH_DIR) {
-        eprintln!("could not create {}: {e}", TRUTH_DIR);
+    let td = truth_dir();
+    if let Err(e) = fs::create_dir_all(&td) {
+        eprintln!("could not create {td}: {e}");
         std::process::exit(1);
     }
-    let seeded = fs::read_dir(TRUTH_DIR).map(|d| d.flatten().any(|e| e.path().extension().map(|x| x == "node").unwrap_or(false))).unwrap_or(false);
+    let seeded = fs::read_dir(&td).map(|d| d.flatten().any(|e| e.path().extension().map(|x| x == "node").unwrap_or(false))).unwrap_or(false);
     if tmpl == "arte" && !seeded {
         seed_arte();
         println!("• seeded arte's own design truth (11 nodes)");

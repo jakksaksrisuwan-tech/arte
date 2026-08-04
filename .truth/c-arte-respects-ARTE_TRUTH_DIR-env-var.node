@@ -1,0 +1,7 @@
+id: c-arte-respects-ARTE_TRUTH_DIR-env-var
+role: control
+subset: subset
+title: Arte respects ARTE_TRUTH_DIR env var
+serves: m-env-var-reader
+note: ARTE_TRUTH_DIR, ARTE_RUNS_DIR, ARTE_DISPATCH_PATH env vars redirect artefact to read/write from those paths instead of the CWD defaults. Fallback to current `.truth/`, `qa/runs/`, `.loop-dispatch` when unset.
+status: ok

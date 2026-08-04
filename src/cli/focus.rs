@@ -6,7 +6,7 @@ use std::fs;
 use crate::*;
 
 pub fn focus_path() -> String {
-    format!("{TRUTH_DIR}/.focus")
+    format!("{}/.focus", truth_dir())
 }
 
 /// Reads `.truth/.focus` line by line. Missing file → empty (no focus set

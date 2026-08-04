@@ -56,7 +56,7 @@ fn tests_stale() -> bool {
     }
     let (mut tests_m, mut truth_m) = (0u64, 0u64);
     newest(Path::new("test"), false, &mut tests_m);
-    newest(Path::new(TRUTH_DIR), true, &mut truth_m);
+    newest(Path::new(&truth_dir()), true, &mut truth_m);
     tests_m > truth_m
 }
 
@@ -77,7 +77,7 @@ fn src_stale() -> bool {
         }
     }
     fn newest_node(out: &mut u64) {
-        if let Ok(rd) = fs::read_dir(TRUTH_DIR) {
+        if let Ok(rd) = fs::read_dir(truth_dir()) {
             for e in rd.flatten() {
                 let p = e.path();
                 if p.extension().is_some_and(|x| x == "node") {

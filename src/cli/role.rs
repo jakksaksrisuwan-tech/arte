@@ -81,7 +81,7 @@ pub fn cmd_implement() {
         implement_pass(&test, &agent);
         return;
     }
-    println!("arte implement --watch — watching {TRUTH_DIR}/ + test/ (ctrl-c to stop)");
+    println!("arte implement --watch — watching {}/ + test/ (ctrl-c to stop)", truth_dir());
     implement_pass(&test, &agent);
     let mut last = impl_fingerprint();
     loop {
@@ -111,7 +111,7 @@ pub fn impl_fingerprint() -> u64 {
         }
     }
     let mut entries = Vec::new();
-    walk(TRUTH_DIR, &mut entries);
+    walk(&truth_dir(), &mut entries);
     walk("test", &mut entries);
     entries.sort();
     let mut h = std::collections::hash_map::DefaultHasher::new();

@@ -187,6 +187,8 @@ pub fn verify_pass() -> (usize, usize, usize) {
             None => { holes += 1; }
         }
     }
+    let run_dir = runs_dir();
+    prune_runs(Path::new(&run_dir), STABLE_PASS_WINDOW);
     let after = snap_pristine(&vconf.pristine);
     let leaks = if before != after {
         let b: HashMap<&String, &u64> = before.iter().map(|(p, h)| (p, h)).collect();
@@ -237,6 +239,30 @@ pub fn verify_pass() -> (usize, usize, usize) {
         println!("controls: {c_ok} ok · {c_ko} ko  (rolled up from their validations)");
     }
     (ok, ko, holes)
+}
+
+/// Bound each validation's run history by filename sequence, newest first.
+fn prune_runs(dir: &Path, keep: usize) {
+    let Ok(entries) = dir.read_dir() else { return };
+    let mut by_validation: HashMap<String, Vec<(u64, std::path::PathBuf)>> = HashMap::new();
+    for entry in entries.flatten() {
+        let name = entry.file_name();
+        let Some(name) = name.to_str() else { continue };
+        let Some(stem) = name.strip_suffix(".run") else { continue };
+        let Some((validation, seq)) = stem.match_indices('.').find_map(|(dot, _)| {
+            let seq = &stem[dot + 1..];
+            (seq.len() >= 3 && seq.bytes().all(|b| b.is_ascii_digit()))
+                .then(|| seq.parse::<u64>().ok().map(|n| (&stem[..dot], n)))
+                .flatten()
+        }) else { continue };
+        by_validation.entry(validation.to_string()).or_default().push((seq, entry.path()));
+    }
+    for runs in by_validation.values_mut() {
+        runs.sort_by(|a, b| b.0.cmp(&a.0));
+        for (_, path) in runs.iter().skip(keep) {
+            let _ = fs::remove_file(path);
+        }
+    }
 }
 
 /// Write a validation's status to its .node file + append a run record.

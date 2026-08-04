@@ -5,4 +5,4 @@ title: Adding a new role/subset in arte.toml is picked up by the binary without 
 serves: c-roles-and-subsets-used-by-the-binary-are-loaded-from-arte-toml
 at: tests/tetrahedron_gaps.rs
 status: ok
-sha: 893a26a
+sha: 85030f9

@@ -1,0 +1,4 @@
+id: i6
+role: intent
+subset: jobs
+title: Tests can isolate via env vars

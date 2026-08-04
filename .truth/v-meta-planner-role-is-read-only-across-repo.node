@@ -4,5 +4,5 @@ subset: proof
 title: Meta-planner role is read-only across repo
 serves: c-promotion-gated-on-verify-subprocess-exit-code
 at: tests/tetrahedron.rs
-sha: 893a26a
+sha: 85030f9
 status: ok
