@@ -5,4 +5,4 @@ title: Role sandbox rejects writes outside the role's lane
 serves: c-write-isolation-each-role-may-only-touch-its-lane-s-files-spec
 at: tests/tetrahedron_gaps.rs
 status: ok
-sha: 554f64c
+sha: 2d2d7a3

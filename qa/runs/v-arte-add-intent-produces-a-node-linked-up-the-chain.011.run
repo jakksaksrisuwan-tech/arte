@@ -1,5 +1,0 @@
-validation: v-arte-add-intent-produces-a-node-linked-up-the-chain
-result: pass
-sha: ffe5263
-timestamp: 3996-08-04T12:19:42Z
-note: cargo test

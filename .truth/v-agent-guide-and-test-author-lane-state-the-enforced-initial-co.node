@@ -1,0 +1,8 @@
+id: v-agent-guide-and-test-author-lane-state-the-enforced-initial-co
+role: validation
+subset: proof
+title: Agent guide and test-author lane state the enforced initial-condition doctrine
+serves: c-embedded-briefs-teach-the-initial-condition-doctrine-enforce-v
+at: tests/initial_condition_brief.rs
+status: ok
+sha: 2d2d7a3

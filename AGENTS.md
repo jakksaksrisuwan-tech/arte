@@ -28,7 +28,10 @@ THE LOOP (do this, in order):
   2. CONTROLS ARE CRITERIA — each control states one testable condition.
   3. VALIDATIONS ARE TESTS — write the test, `arte at <validation> <test-file>`.
   4. STATUS IS MEASURED — `arte verify` runs the tests and sets validation status.
-     Never hand-assert "it works".
+     Never hand-assert "it works". The INITIAL CONDITION is measured too:
+     point `[verify] setup` at a fixture reset so every run starts from the
+     declared baseline — preconditions in prose over accumulated residue are
+     how a suite goes flaky (deterministic = enforced start → action → delta).
   5. `arte coverage` shows VERIFIED (test-backed + green), not just covered.
 
 BE DETAILED — this is where boards fail and reproductions diverge:

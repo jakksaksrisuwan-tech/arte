@@ -138,7 +138,13 @@ embedded test-author brief (bake-in queue):
    raanyang publishes `.form-page[data-ry-shop="1"]` precisely for tests, and
    ignoring it left a ~700ms blind window where pushes/QR clicks are no-ops.
    Hit 3 specs (impl round 2 measurements).
-6. **Observers die with their realm** — a fetch wrapper patched before
+6. **Initial condition is part of the contract** (user-articulated, the root
+   of the whole flaky tail): a spec that declares preconditions in prose but
+   runs against accumulated residue (qa1: 235 receipts / 301 leads / 86 scans)
+   asserts nothing. Deterministic = enforced initial condition → controlled
+   action → expected delta. Mechanism: raanyang's `[verify] setup` now runs
+   dev-state `fixture_reset` before every verify; arte already had the hook.
+7. **Observers die with their realm** — a fetch wrapper patched before
    navigation belongs to the discarded window and counts nothing; install on
    the destination window after load. Also: don't count rendered rows on a
    windowed list (slice(0,30)) — count the store. Hit 3 specs.

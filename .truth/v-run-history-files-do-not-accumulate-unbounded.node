@@ -5,4 +5,4 @@ title: Run history files do not accumulate unbounded
 serves: c-run-history-files-do-not-accumulate-unbounded
 at: tests/test_isolation.rs
 status: ok
-sha: 554f64c
+sha: 2d2d7a3

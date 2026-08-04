@@ -1,0 +1,5 @@
+validation: v-status-values-are-exactly-ok-ko-pending-justified
+result: pass
+sha: 2d2d7a3
+timestamp: 3996-08-04T17:17:17Z
+note: cargo test

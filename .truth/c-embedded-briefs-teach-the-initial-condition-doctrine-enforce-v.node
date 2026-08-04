@@ -1,0 +1,7 @@
+id: c-embedded-briefs-teach-the-initial-condition-doctrine-enforce-v
+role: control
+subset: TBD
+title: Embedded briefs teach the initial-condition doctrine - enforce via verify setup fixture reset, seed what you assert
+serves: i-a-validation-s-initial-condition-is-enforced-by-the-harness-no
+serves: m-universal-briefs-role-lane-agent-guide-embedded-strings-in-src
+status: ok
