@@ -1,0 +1,7 @@
+id: c-orphan-src-files-have-no-node-claim-via-at
+role: control
+subset: enforcement
+title: Every src file is claimed by at least one node's `at:` (hierarchical: `at: src/cli/` claims the subtree)
+serves: i-green-claims-survive-only-when-2-of-last-5-runs-pass
+note: ponytail: existing fixed by stamping at: src/cli on the tetrahedron-loop-driver impl. latent bug in src/cli/verify.rs#trace_pass: f.starts_with(&format!("{c}/")) double-slashes when claim has trailing slash. worked around by no-slash claim. future restore-arrow risk.
+status: ok

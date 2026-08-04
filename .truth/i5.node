@@ -1,0 +1,4 @@
+id: i5
+role: intent
+subset: jobs
+title: CLI surface for role/focus/gate/lifecycle/dispatcher/wiring subcommands

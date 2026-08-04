@@ -1,0 +1,6 @@
+id: m-impl-arte-focus
+role: impl
+subset: cli
+title: `arte focus` subcommand implementation
+serves: i5
+at: src/cli/focus.rs

@@ -1,0 +1,6 @@
+id: m-arte-dispatcher
+role: impl
+subset: cli
+title: Dispatcher that routes argv to subcommand modules
+serves: i5
+at: src/main.rs

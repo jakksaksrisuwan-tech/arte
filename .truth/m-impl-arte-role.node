@@ -1,0 +1,6 @@
+id: m-impl-arte-role
+role: impl
+subset: cli
+title: `arte role` subcommand implementation
+serves: i5
+at: src/cli/role.rs

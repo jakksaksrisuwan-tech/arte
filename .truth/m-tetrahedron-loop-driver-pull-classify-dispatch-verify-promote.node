@@ -5,3 +5,4 @@ title: Tetrahedron loop driver (PULL/CLASSIFY/DISPATCH/VERIFY/PROMOTE)
 serves: i5
 serves: i-green-claims-survive-only-when-2-of-last-5-runs-pass
 at: src/cli/cycle.rs#cmd_cycle
+at: src/main.rs

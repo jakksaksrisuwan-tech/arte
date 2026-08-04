@@ -1,0 +1,6 @@
+id: m-cli-module-wiring
+role: impl
+subset: cli
+title: CLI module wiring (subcommand registry)
+serves: i5
+at: src/cli/mod.rs

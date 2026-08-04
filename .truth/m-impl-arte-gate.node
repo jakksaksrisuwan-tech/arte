@@ -1,0 +1,6 @@
+id: m-impl-arte-gate
+role: impl
+subset: cli
+title: `arte gate` subcommand implementation
+serves: i5
+at: src/cli/gate.rs

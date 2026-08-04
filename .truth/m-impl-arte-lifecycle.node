@@ -1,0 +1,6 @@
+id: m-impl-arte-lifecycle
+role: impl
+subset: cli
+title: `arte lifecycle` subcommand implementation
+serves: i5
+at: src/cli/lifecycle.rs
