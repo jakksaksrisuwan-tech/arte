@@ -143,6 +143,23 @@ prompt: |
   Exit: <role's exit>.
 ```
 
+## Commit protocol (why work stops getting refused at commit)
+
+Subagents spawned via the Agent tool do NOT run under `arte role --` — the OS
+sandbox never sees them. Without this protocol, lane violations surface only
+at commit audit, after the work is done. Refused commits = burned tokens.
+
+1. **Subagents never commit.** Their exit is a clean lane footprint, not a commit.
+2. **Enforce the lane at spawn, not at commit.** The spawn prompt's `MAY NOT`
+   list is the deny-list; the meta-planner's `git status --short` audit right
+   after hand-off is the enforcement. Catch it while the diff is one hand-off
+   old, not five.
+3. **The meta-planner commits**, once per round, after the audit passes, with
+   the intent id in the message (`arte check-commits` verifies this). One
+   round = one commit = one intent id.
+4. A violation found at audit → revert the out-of-lane files, message the
+   agent, re-dispatch. Never "fix it in the commit".
+
 ## Audit between hand-offs (the meta-planner runs these)
 
 ```bash

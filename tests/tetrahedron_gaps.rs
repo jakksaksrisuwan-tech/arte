@@ -62,14 +62,47 @@ fn role_sandbox_denies_meta_planner_write_to_src() {
 #[test]
 fn coverage_reports_zero_gaps_on_complete_board() {
     // c-every-intent-has-...: on a board where every intent is covered, the
-    // coverage summary line must read "0 gap(s)". A regression that re-introduces
-    // an uncovered intent (or that drops a layer from the chain) flips this to
-    // a non-zero number — the test catches it.
-    let out = Command::new(BIN).arg("coverage").output().expect("spawn arte coverage");
-    let stdout = String::from_utf8_lossy(&out.stdout);
+    // coverage summary line must read "0 gap(s)". A regression that drops a
+    // layer from the chain or miscounts coverage flips this — the test
+    // catches it. Scoped to a SCRATCH board we build complete here: the LIVE
+    // board is allowed open (uncovered) intents — that's the visible work
+    // queue, not a coverage regression. Testing the live board would test
+    // repo state, not tool behaviour.
+    let dir = std::env::temp_dir().join(format!(
+        "arte-cov-complete-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0)
+    ));
+    fs::create_dir_all(&dir).expect("scratch dir");
+    let run = |args: &[&str]| {
+        let out = Command::new(BIN)
+            .args(args)
+            .env("ARTE_TRUTH_DIR", &dir)
+            .output()
+            .expect("spawn arte");
+        assert!(out.status.success(), "arte {args:?} failed");
+        String::from_utf8_lossy(&out.stdout).into_owned()
+    };
+    // Build one complete intent -> impl -> control -> validation chain.
+    let id_of = |out: &str| {
+        out.lines()
+            .find(|l| l.starts_with("added "))
+            .and_then(|l| l.split_whitespace().nth(1))
+            .map(str::to_string)
+            .expect("parse minted id")
+    };
+    let i = id_of(&run(&["add", "intent", "complete chain fixture"]));
+    let m = id_of(&run(&["add", "impl", "fixture impl", "--serves", &i]));
+    let c = id_of(&run(&["add", "control", "fixture control", "--serves", &m]));
+    let _v = id_of(&run(&["add", "validation", "fixture validation", "--serves", &c]));
+    let stdout = run(&["coverage"]);
+    let _ = fs::remove_dir_all(&dir);
     assert!(
         stdout.contains("0 gap(s)"),
-        "coverage did NOT report `0 gap(s)` — board has uncovered intents.\n--- coverage output ---\n{stdout}"
+        "coverage did NOT report `0 gap(s)` on a fully-chained scratch board — coverage walk broken.\n--- coverage output ---\n{stdout}"
     );
 }
 
