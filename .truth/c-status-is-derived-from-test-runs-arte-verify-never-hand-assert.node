@@ -1,0 +1,6 @@
+id: c-status-is-derived-from-test-runs-arte-verify-never-hand-assert
+role: control
+subset: enforcement
+title: Status is derived from test runs (arte verify), never hand-asserted
+serves: i3b
+status: ok

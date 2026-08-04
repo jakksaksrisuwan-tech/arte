@@ -1,0 +1,10 @@
+id: c-verified-heuristic-accepts-both-vitest-style-test-and-rust-sty
+role: control
+subset: enforcement
+title: Verified heuristic accepts both vitest-style (.test.*) and Rust-style (tests/*.rs), go-style (_test.go), qa/tests/*
+serves: m-verified-status-heuristic-in-arte-coverage
+note: accepts: a.contains('.test.')  (vitest convention)
+note: accepts: a.contains("tests/") && a.ends_with(".rs")  (Rust convention)
+note: accepts: a.contains("tests/") && a.ends_with(".go")  (Go convention, _test.go suffix variant)
+note: accepts: a.starts_with("qa/tests/")  (QA convention)
+status: ok

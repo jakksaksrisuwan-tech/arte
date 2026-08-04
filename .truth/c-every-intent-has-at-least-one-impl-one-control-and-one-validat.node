@@ -1,0 +1,6 @@
+id: c-every-intent-has-at-least-one-impl-one-control-and-one-validat
+role: control
+subset: format
+title: Every intent has at least one impl, one control, and one validation linked bottom-up
+serves: i2
+status: ok

@@ -1,0 +1,5 @@
+id: i-green-claims-survive-only-when-2-of-last-5-runs-pass
+role: intent
+subset: jobs
+title: Green claims survive only when 2 of last 5 runs pass
+serves: i3

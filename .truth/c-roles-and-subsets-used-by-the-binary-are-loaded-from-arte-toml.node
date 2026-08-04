@@ -1,0 +1,6 @@
+id: c-roles-and-subsets-used-by-the-binary-are-loaded-from-arte-toml
+role: control
+subset: subset
+title: Roles and subsets used by the binary are loaded from arte.toml, not hardcoded in Rust
+serves: i4
+status: ok

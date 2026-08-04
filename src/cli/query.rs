@@ -337,7 +337,13 @@ pub fn coverage_pass() -> (usize, usize, usize) {
             n.get("role") == Some(vrole)
                 && cl.contains(iid)
                 && n.get("status") == Some("ok")
-                && n.all("at").iter().any(|a| a.contains(".test."))
+                && n.all("at").iter().any(|a| {
+                    a.contains(".test.")
+                        || a.starts_with("tests/")
+                        || a.starts_with("test/")
+                        || a.starts_with("qa/tests/")
+                        || a.starts_with("__tests__/")
+                })
         });
         let mark = if is_verified { "⚡verified" } else if whole { "·unproven" } else { "" };
         let chip = rollup(&statuses).map(|s| format!("[{s}]")).unwrap_or_else(|| "[—]".into());

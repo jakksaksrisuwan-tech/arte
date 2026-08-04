@@ -1,0 +1,8 @@
+id: v-adding-a-new-role-subset-in-arte-toml-is-picked-up-by-the-bina
+role: validation
+subset: proof
+title: Adding a new role/subset in arte.toml is picked up by the binary without a Rust change
+serves: c-roles-and-subsets-used-by-the-binary-are-loaded-from-arte-toml
+at: tests/tetrahedron_gaps.rs
+status: ok
+sha: 6507e19

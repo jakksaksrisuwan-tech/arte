@@ -59,12 +59,12 @@ pub fn run_isolated_as(role: Option<&str>, deny_dirs: &[&str], program: &str, ar
 pub fn cmd_role() {
     let args: Vec<String> = env::args().skip(2).collect();
     let (Some(role), Some(sep)) = (args.first().cloned(), args.iter().position(|a| a == "--")) else {
-        eprintln!("usage: arte role <implementer|test-author|specifier|qa> -- <command...>");
+        eprintln!("usage: arte role <role> -- <command...>   (specifier|test-author|implementer|qa|meta-planner)");
         std::process::exit(2);
     };
     let deny = role_deny_dirs(&role);
     if deny.is_empty() {
-        eprintln!("unknown role '{role}' (implementer | test-author | specifier | qa)");
+        eprintln!("unknown role '{role}' — pick one: specifier | test-author | implementer | qa | meta-planner");
         std::process::exit(2);
     }
     let cmd = args[sep + 1..].join(" ");

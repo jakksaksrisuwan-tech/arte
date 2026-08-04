@@ -1,0 +1,8 @@
+id: c-promotion-gated-on-verify-subprocess-exit-code
+role: control
+subset: enforcement
+title: Promotion gated on verify subprocess exit code
+serves: m2
+serves: m-tetrahedron-loop-driver-pull-classify-dispatch-verify-promote
+at: src/cli/cycle.rs#cmd_cycle
+status: ok

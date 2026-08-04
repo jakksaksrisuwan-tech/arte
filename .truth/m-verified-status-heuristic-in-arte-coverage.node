@@ -1,0 +1,6 @@
+id: m-verified-status-heuristic-in-arte-coverage
+role: impl
+subset: cli
+title: Verified status heuristic in `arte coverage`
+serves: i-green-claims-survive-only-when-2-of-last-5-runs-pass
+at: src/cli/query.rs#coverage_pass

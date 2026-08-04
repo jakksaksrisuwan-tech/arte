@@ -1,0 +1,8 @@
+id: c-status-values-are-exactly-ok-ko-pending-justified
+role: control
+subset: enforcement
+title: Status values are exactly {ok, ko, pending, justified}
+serves: m2
+serves: m-tetrahedron-loop-driver-pull-classify-dispatch-verify-promote
+at: src/cli/mutators.rs#cmd_status
+status: ok

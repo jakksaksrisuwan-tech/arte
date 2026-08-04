@@ -1,0 +1,8 @@
+id: v-verified-heuristic-matches-multiple-test-layout-conventions
+role: validation
+subset: proof
+title: Verified heuristic matches multiple test layout conventions
+serves: c-verified-heuristic-accepts-both-vitest-style-test-and-rust-sty
+at: tests/verified_heuristic.rs
+status: ok
+sha: 6507e19

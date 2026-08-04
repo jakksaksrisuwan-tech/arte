@@ -1,0 +1,6 @@
+id: c-write-isolation-each-role-may-only-touch-its-lane-s-files-spec
+role: control
+subset: enforcement
+title: Write-isolation: each role may only touch its lane's files (specifier->.truth, test-author->tests+validations, implementer->src)
+serves: i1
+status: ok

@@ -1,0 +1,8 @@
+id: v-validation-status-after-arte-verify-equals-the-test-exit-code
+role: validation
+subset: proof
+title: Validation status after arte verify equals the test exit code
+serves: c-status-is-derived-from-test-runs-arte-verify-never-hand-assert
+at: tests/tetrahedron_gaps.rs
+status: ok
+sha: 6507e19

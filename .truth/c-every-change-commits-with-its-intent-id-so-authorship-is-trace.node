@@ -1,0 +1,6 @@
+id: c-every-change-commits-with-its-intent-id-so-authorship-is-trace
+role: control
+subset: subset
+title: Every change commits with its intent id so authorship is traceable to the why
+serves: i3a
+status: ok

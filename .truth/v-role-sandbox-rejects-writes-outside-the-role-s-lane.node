@@ -1,0 +1,8 @@
+id: v-role-sandbox-rejects-writes-outside-the-role-s-lane
+role: validation
+subset: proof
+title: Role sandbox rejects writes outside the role's lane
+serves: c-write-isolation-each-role-may-only-touch-its-lane-s-files-spec
+at: tests/tetrahedron_gaps.rs
+status: ok
+sha: 6507e19

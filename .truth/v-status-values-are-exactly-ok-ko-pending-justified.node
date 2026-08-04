@@ -1,0 +1,9 @@
+id: v-status-values-are-exactly-ok-ko-pending-justified
+role: validation
+subset: proof
+title: Status values are exactly {ok,ko,pending,justified}
+serves: c-status-values-are-exactly-ok-ko-pending-justified
+at: tests/tetrahedron.rs
+at: tests/tetrahedron.rs
+status: ok
+sha: 6507e19

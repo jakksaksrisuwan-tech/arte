@@ -1,0 +1,8 @@
+id: v-each-commit-message-references-an-existing-intent-id
+role: validation
+subset: proof
+title: Each commit message references an existing intent id
+serves: c-every-change-commits-with-its-intent-id-so-authorship-is-trace
+at: tests/tetrahedron_gaps.rs
+status: ok
+sha: 6507e19

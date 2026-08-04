@@ -1,0 +1,8 @@
+id: v-meta-planner-role-is-read-only-across-repo
+role: validation
+subset: proof
+title: Meta-planner role is read-only across repo
+serves: c-promotion-gated-on-verify-subprocess-exit-code
+at: tests/tetrahedron.rs
+sha: 6507e19
+status: ok
