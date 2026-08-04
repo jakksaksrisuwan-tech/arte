@@ -241,30 +241,6 @@ pub fn verify_pass() -> (usize, usize, usize) {
     (ok, ko, holes)
 }
 
-/// Bound each validation's run history by filename sequence, newest first.
-fn prune_runs(dir: &Path, keep: usize) {
-    let Ok(entries) = dir.read_dir() else { return };
-    let mut by_validation: HashMap<String, Vec<(u64, std::path::PathBuf)>> = HashMap::new();
-    for entry in entries.flatten() {
-        let name = entry.file_name();
-        let Some(name) = name.to_str() else { continue };
-        let Some(stem) = name.strip_suffix(".run") else { continue };
-        let Some((validation, seq)) = stem.match_indices('.').find_map(|(dot, _)| {
-            let seq = &stem[dot + 1..];
-            (seq.len() >= 3 && seq.bytes().all(|b| b.is_ascii_digit()))
-                .then(|| seq.parse::<u64>().ok().map(|n| (&stem[..dot], n)))
-                .flatten()
-        }) else { continue };
-        by_validation.entry(validation.to_string()).or_default().push((seq, entry.path()));
-    }
-    for runs in by_validation.values_mut() {
-        runs.sort_by(|a, b| b.0.cmp(&a.0));
-        for (_, path) in runs.iter().skip(keep) {
-            let _ = fs::remove_file(path);
-        }
-    }
-}
-
 /// Write a validation's status to its .node file + append a run record.
 /// Hoisted out of the verify loop so callers (cmd_cycle) can also flush
 /// per-test verdicts when they need to.
@@ -374,7 +350,7 @@ pub fn trace_pass() -> (usize, usize) {
     walk("src", &mut srcs);
     srcs.sort();
     let orphans: Vec<&String> =
-        srcs.iter().filter(|f| !claimed.contains(*f) && !claimed.iter().any(|c| f.starts_with(&format!("{c}/")))).collect();
+        srcs.iter().filter(|f| !claimed.contains(*f) && !claimed.iter().any(|c| f.starts_with(&format!("{}/", c.trim_end_matches('/'))))).collect();
     if !orphans.is_empty() {
         println!("  ⚠ {} src file(s) NO node claims via at: (unspecced code):", orphans.len());
         for f in orphans.iter().take(8) {

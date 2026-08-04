@@ -363,31 +363,33 @@ pub fn write_run(v_id: &str, rec: &RunRec) -> std::io::Result<()> {
     if !rec.timestamp.is_empty() { n.push_field("timestamp", &rec.timestamp); }
     if !rec.note.is_empty() { n.push_field("note", &rec.note); }
     fs::write(&path, n.to_text())?;
-    prune_runs(Path::new(&dir), v_id, STABLE_PASS_WINDOW);
+    prune_runs(Path::new(&dir), STABLE_PASS_WINDOW);
     Ok(())
 }
 
-/// Drop oldest run files beyond `keep` per validation. Called from `write_run`
-/// and at the tail of `verify_pass` so the history stays bounded by the
-/// stable-pass window. c-run-history-files-do-not-accumulate-unbounded.
-pub fn prune_runs(runs_dir: &Path, v_id: &str, keep: usize) {
-    let Ok(rd) = fs::read_dir(runs_dir) else { return };
-    let prefix = format!("{v_id}.");
-    let suffix = ".run";
-    let mut entries: Vec<(String, u64)> = Vec::new();
-    for e in rd.flatten() {
-        let name = e.file_name().to_string_lossy().to_string();
-        if !name.starts_with(&prefix) || !name.ends_with(&suffix) { continue; }
-        let mtime = e.metadata().ok().and_then(|md| md.modified().ok())
-            .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
-            .map(|d| d.as_secs())
-            .unwrap_or(0);
-        entries.push((e.path().to_string_lossy().to_string(), mtime));
+/// Bound each validation's run history to `keep` files, newest-first by
+/// filename sequence. Called from `write_run` and the tail of `verify_pass`.
+/// c-run-history-files-do-not-accumulate-unbounded.
+pub fn prune_runs(runs_dir: &Path, keep: usize) {
+    let Ok(entries) = runs_dir.read_dir() else { return };
+    let mut by_validation: std::collections::HashMap<String, Vec<(u64, std::path::PathBuf)>> = std::collections::HashMap::new();
+    for entry in entries.flatten() {
+        let name = entry.file_name();
+        let Some(name) = name.to_str() else { continue };
+        let Some(stem) = name.strip_suffix(".run") else { continue };
+        let Some((validation, seq)) = stem.match_indices('.').find_map(|(dot, _)| {
+            let seq = &stem[dot + 1..];
+            (seq.len() >= 3 && seq.bytes().all(|b| b.is_ascii_digit()))
+                .then(|| seq.parse::<u64>().ok().map(|n| (&stem[..dot], n)))
+                .flatten()
+        }) else { continue };
+        by_validation.entry(validation.to_string()).or_default().push((seq, entry.path()));
     }
-    // Sort newest first by mtime, then drop everything past `keep`.
-    entries.sort_by(|a, b| b.1.cmp(&a.1));
-    for (p, _) in entries.iter().skip(keep) {
-        let _ = fs::remove_file(p);
+    for runs in by_validation.values_mut() {
+        runs.sort_by(|a, b| b.0.cmp(&a.0));
+        for (_, path) in runs.iter().skip(keep) {
+            let _ = fs::remove_file(path);
+        }
     }
 }
 
@@ -484,10 +486,10 @@ pub fn now_rfc3339() -> String {
 /// composed into `arte implement`'s headless brief.
 pub fn role_lane(role: &str) -> &'static str {
     match role {
-        "specifier" | "spec" => "You own the BOARD (.truth/): intents, impls, controls, notes, contracts. You may NOT write tests or code. Fill the board completely; note every design decision on its node; run `arte coverage` — every intent covered before you hand off. YOU ARE ALSO THE ARBITER: when the implementer disputes a test, verify the claim independently (read both sides, re-derive the math/API yourself), then RULE — (a) test wrong: instruct the test-author precisely what to fix; (b) implementation wrong: reject the dispute with the reason; (c) the CONTROL was ambiguous: amend the control/note first, then cascade the fix. Record every ruling as a note on the contested control (the board is the court record). The disputants never settle between themselves. TRIAGE SPEC-GAP reports from any role: a real gap with no home -> mint the control (or amend one) and note the provenance; noise or already-covered -> decline WITH the existing home's id. Gaps found downstream are the spec improving — expected, not failure.",
-        "test-author" | "tester" | "adversary" => "You own test/ + validation nodes. STAMP, DON'T MINT: if a control already has a validation stub, `arte at` it to your test — never add a twin (arte refuses exact ones; heed the similar-node warnings). Add a validation node ONLY for a control that truly has none. For EVERY control without a validation: read it with `arte show <id>` (NOT the raw file — show includes inherited ancestor notes, which are BINDING design decisions), then write a test that FAILS if the behavior is missing or wrong (a not-yet-built feature SHOULD be red — that red is the implementer's work order), add the validation node, stamp it with `arte at`. Never touch src/ (read it freely). Never set status — `arte verify` derives it. After writing each test RUN it and confirm it fails for the RIGHT reason (no vacuous passes). If a control is untestable or contradicts another, REPORT the conflict — never silently work around it. When a test of yours is DISPUTED, do not defend or amend it on the implementer's word alone: re-verify with your own runs and math, and change it only per the SPECIFIER's ruling (recorded on the control). Direct questions to/from other roles are fine — talk is free; writes are walled. You see corners the spec missed: report each as \"SPEC-GAP: <missing control/edge, and why it matters>\" — the SPECIFIER triages and decides what enters the board; you never mint controls yourself.",
-        "implementer" | "impl" => "You own src/. Your entire spec = the board + the failing tests. Read every control you implement against with `arte show <id>` — inherited ancestor notes are BINDING design decisions. Decide HOW, never WHAT. Never touch test/ or .truth/ except `arte at <impl-id> <src-file>` stamps on impls you realize. Honor `contract:` names exactly. If you believe a TEST is wrong, do not work around or edit it — record the dispute ON THE BOARD (`arte set <control-id> note \"DISPUTE: <test> — <your mathematical/API reason>\"`) and report DISPUTE; the SPECIFIER arbitrates. You may ASK the specifier or test-author questions directly (talk is free — the walls bound writes, not speech), but only a specifier ruling changes a goalpost. While implementing you will meet cases the spec never mentions (unhandled input, missing behavior, ambiguity): do NOT silently decide them — report each as \"SPEC-GAP: <what is unspecified, and the decision it forces>\"; the specifier rules and the board records it. Before declaring done, run `arte gate` and fix everything fixable from src/.",
-        "meta-planner" | "planner" => "You are the META-PLANNER. You don't author code, tests, or board nodes — you COORDINATE. Read the board (`arte observe`), read run history (`arte runs <id>`), drive the loop (`arte cycle --once`), read `.loop-dispatch` after each cycle to know the next move. DISPATCH: read `recipes/<harness>/<role>.md` for the canonical lane prompt + tools allow/deny list, copy the template, fill in <TASK>, spawn via the Agent tool (Claude Code) / delegate_task (Hermes) / equivalent. The recipe is the single source of truth — never hand-compose prompts. AUDIT BETWEEN HAND-OFFS: every lane's `OWN:` line is a literal deny-list. Run `git diff --stat HEAD~1` after each spawn and reject any file outside the lane's OWN dirs; a lane violation is the actual lie the gate exists to prevent. Run `arte verify` and `arte gate` yourself to derive verdicts — never trust agent reports. Spec disputes escalate to specifier; you don't adjudicate. Stable-pass rule: green claims auto-promote only after the meta-planner observes ≥2 of last 5 passes — the meta-planner IS the promotion authority.",
+        "specifier" | "spec" => "You own the BOARD (.truth/): intents, impls, controls, notes, contracts. You may NOT write tests or code. Fill the board completely; note every design decision on its node; run `arte coverage` — every intent covered before you hand off. YOU ARE ALSO THE ARBITER: when the implementer disputes a test, verify the claim independently (read both sides, re-derive the math/API yourself), then RULE — (a) test wrong: instruct the test-author precisely what to fix; (b) implementation wrong: reject the dispute with the reason; (c) the CONTROL was ambiguous: amend the control/note first, then cascade the fix. Record every ruling as a note on the contested control (the board is the court record). The disputants never settle between themselves. TRIAGE SPEC-GAP reports from any role: a real gap with no home -> mint the control (or amend one) and note the provenance; noise or already-covered -> decline WITH the existing home's id. Gaps found downstream are the spec improving — expected, not failure. NEVER COMMIT from this lane: the orchestrator audits your footprint, then commits once per round with the intent id (solo mode: you are your own orchestrator — audit, then commit with the intent id).",
+        "test-author" | "tester" | "adversary" => "You own test/ + validation nodes. STAMP, DON'T MINT: if a control already has a validation stub, `arte at` it to your test — never add a twin (arte refuses exact ones; heed the similar-node warnings). Add a validation node ONLY for a control that truly has none. For EVERY control without a validation: read it with `arte show <id>` (NOT the raw file — show includes inherited ancestor notes, which are BINDING design decisions), then write a test that FAILS if the behavior is missing or wrong (a not-yet-built feature SHOULD be red — that red is the implementer's work order), add the validation node, stamp it with `arte at`. Never touch src/ (read it freely). Never set status — `arte verify` derives it. After writing each test RUN it and confirm it fails for the RIGHT reason (no vacuous passes). If a control is untestable or contradicts another, REPORT the conflict — never silently work around it. When a test of yours is DISPUTED, do not defend or amend it on the implementer's word alone: re-verify with your own runs and math, and change it only per the SPECIFIER's ruling (recorded on the control). Direct questions to/from other roles are fine — talk is free; writes are walled. You see corners the spec missed: report each as \"SPEC-GAP: <missing control/edge, and why it matters>\" — the SPECIFIER triages and decides what enters the board; you never mint controls yourself. NEVER COMMIT from this lane: the orchestrator audits your footprint, then commits once per round with the intent id (solo mode: you are your own orchestrator — audit, then commit with the intent id).",
+        "implementer" | "impl" => "You own src/. Your entire spec = the board + the failing tests. Read every control you implement against with `arte show <id>` — inherited ancestor notes are BINDING design decisions. Decide HOW, never WHAT. Never touch test/ or .truth/ except `arte at <impl-id> <src-file>` stamps on impls you realize. Honor `contract:` names exactly. If you believe a TEST is wrong, do not work around or edit it — record the dispute ON THE BOARD (`arte set <control-id> note \"DISPUTE: <test> — <your mathematical/API reason>\"`) and report DISPUTE; the SPECIFIER arbitrates. You may ASK the specifier or test-author questions directly (talk is free — the walls bound writes, not speech), but only a specifier ruling changes a goalpost. While implementing you will meet cases the spec never mentions (unhandled input, missing behavior, ambiguity): do NOT silently decide them — report each as \"SPEC-GAP: <what is unspecified, and the decision it forces>\"; the specifier rules and the board records it. Before declaring done, run `arte gate` and fix everything fixable from src/. NEVER COMMIT from this lane: the orchestrator audits your footprint, then commits once per round with the intent id (solo mode: you are your own orchestrator — audit, then commit with the intent id).",
+        "meta-planner" | "planner" => "You are the META-PLANNER. You don't author code, tests, or board nodes — you COORDINATE. Read the board (`arte observe`), read run history (`arte runs <id>`), drive the loop (`arte cycle --once`), read `.loop-dispatch` after each cycle to know the next move. DISPATCH: read `recipes/<harness>/<role>.md` for the canonical lane prompt + tools allow/deny list, copy the template, fill in <TASK>, spawn via the Agent tool (Claude Code) / delegate_task (Hermes) / equivalent. The recipe is the single source of truth — never hand-compose prompts. AUDIT BETWEEN HAND-OFFS: every lane's `OWN:` line is a literal deny-list. Run `git diff --stat HEAD~1` after each spawn and reject any file outside the lane's OWN dirs; a lane violation is the actual lie the gate exists to prevent. Run `arte verify` and `arte gate` yourself to derive verdicts — never trust agent reports. Spec disputes escalate to specifier; you don't adjudicate. Stable-pass rule: green claims auto-promote only after the meta-planner observes ≥2 of last 5 passes — the meta-planner IS the promotion authority. COMMITS ARE YOURS ALONE: workers never commit. After the lane audit passes, commit ONCE per round with the intent id in the message (`arte check-commits` verifies). Audit finds an out-of-lane file → revert it and re-dispatch; never absorb a violation into the commit.",
         _ => "You sign off: run the real artifact adversarially (edge input, hostile input, rapid interaction), compare against each intent's plain meaning — not against the tests, which may share the build's blind spots. File concrete defects and missing-spec items; you write no code, no tests, no board nodes. A finding ATTACHES to the existing control governing that surface (strengthen it) — propose a NEW control only for genuinely ungoverned surface (`arte coverage` shows what has no home).",
     }
 }
@@ -576,6 +578,9 @@ ROLES — separation of authority (no agent grades its own work):
     · disputes cross lanes THROUGH YOU: an implementer who believes a test is wrong
       argues it to the orchestrator; the test-author verifies independently and fixes
       only what it confirms. Nobody ever edits the artifact that grades them.
+    · COMMITS: workers never commit — lane violations discovered at commit time are
+      tokens already burned. YOU commit, once per round, after the footprint audit
+      passes, with the intent id in the message (`arte check-commits` verifies).
 
 COMMANDS:
   read     arte            (front door: show the board / guide init)
