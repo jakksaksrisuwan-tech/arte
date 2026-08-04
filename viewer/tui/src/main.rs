@@ -740,6 +740,16 @@ fn arte_working(dir: &str, nodes: &[ArteNode]) -> std::collections::HashSet<Stri
     let mut out = std::collections::HashSet::new();
     let mut seen = std::collections::HashSet::new();
     let mut stack: Vec<String> = arte_focus_ids(dir).into_iter().filter(|id| !green(id)).collect();
+    // DERIVED focus: a node written in the last ~45s IS being worked on — pulse it
+    // without any agent declaring anything. (Measured: across 10+ agent runs, not
+    // one ever called `arte working`; activity itself is the honest focus signal.)
+    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+    stack.extend(
+        nodes
+            .iter()
+            .filter(|n| n.modified.is_some_and(|m| now.saturating_sub(m) < 45) && !green(&n.id))
+            .map(|n| n.id.clone()),
+    );
     while let Some(id) = stack.pop() {
         if !seen.insert(id.clone()) {
             continue;
@@ -781,6 +791,7 @@ fn event_loop(terminal: &mut ratatui::DefaultTerminal, app: &mut AppState, store
     // fs-watch dep). Throttled to ~2×/sec. Only active in arte mode (Some(dir)).
     let mut arte_fp = arte_dir.map(truth_fingerprint);
     let mut last_scan = std::time::Instant::now();
+    let mut last_pulse = std::time::Instant::now();
     loop {
         if let Some(dir) = arte_dir {
             if last_scan.elapsed() >= Duration::from_millis(400) {
@@ -793,11 +804,17 @@ fn event_loop(terminal: &mut ratatui::DefaultTerminal, app: &mut AppState, store
                     fresh.ui = std::mem::take(&mut app.ui); // keep cursor/scroll/page
                     *app = fresh;
                     app.ui.working = arte_working(dir, &nodes); // re-read focus → pulse follows it live
+                    last_pulse = std::time::Instant::now();
+                } else if last_pulse.elapsed() >= Duration::from_secs(5) {
+                    // recency pulse DECAYS: recompute every 5s even with no board
+                    // change, so "modified in the last 45s" stops blinking on time.
+                    last_pulse = std::time::Instant::now();
+                    app.ui.working = arte_working(dir, &load_arte_nodes(dir));
                 }
             }
         }
         // Pulse phase for "working on" items — flips every 500ms (poll is 100ms).
-        app.ui.blink.set((start.elapsed().as_millis() / 500) % 2 == 0);
+        app.ui.blink.set((start.elapsed().as_millis() / 500).is_multiple_of(2));
         terminal.draw(|frame| render::render_app(frame, app))?;
         let mut changed = false;
 
@@ -809,11 +826,10 @@ fn event_loop(terminal: &mut ratatui::DefaultTerminal, app: &mut AppState, store
                     }
                     changed = true;
                 }
-                Event::Mouse(me) => {
-                    if mouse::handle(app, me) {
+                Event::Mouse(me)
+                    if mouse::handle(app, me) => {
                         changed = true;
                     }
-                }
                 _ => {}
             }
         }
@@ -876,5 +892,44 @@ mod tests {
         let surface = app.latest().unwrap();
         assert_eq!(surface.title, "OCR Pipeline");
         assert!(matches!(surface.root, UiNode::Panel { .. }));
+    }
+}
+
+#[cfg(test)]
+mod pulse_tests {
+    use super::*;
+    #[test]
+    fn recent_write_pulses_without_focus() {
+        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
+        let n = ArteNode {
+            id: "c-x".into(), role: "control".into(), frame: None, title: "fresh work".into(),
+            serves: vec![], status: None, category: None, note: vec![], at: vec![], modified: Some(now - 5),
+        };
+        let old = ArteNode { modified: Some(now - 300), id: "c-old".into(), title: "stale".into(), ..dummy() };
+        let w = arte_working("/nonexistent-dir", &[n, old]);
+        assert!(w.contains("fresh work"), "recently-written node must pulse");
+        assert!(!w.contains("stale"), "old node must not pulse");
+    }
+    #[test]
+    fn derived_pulse_reaches_working_cells_end_to_end() {
+        // node written seconds ago -> arte_working -> appstate -> working_cells hit
+        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
+        let n = ArteNode {
+            id: "c-fresh".into(), role: "control".into(), frame: Some("ux".into()),
+            title: "fresh control".into(), serves: vec![], status: None, category: None,
+            note: vec![], at: vec![], modified: Some(now - 3),
+        };
+        let nodes = vec![n];
+        let chain = vec!["intent".to_string(), "impl".into(), "control".into(), "validation".into()];
+        let mut app = arte_appstate(&nodes, &chain, &Default::default());
+        app.ui.working = arte_working("/nonexistent-dir", &nodes);
+        // activate the control page (chain index 2)
+        app.set_active(2);
+        assert!(!app.working_cells().is_empty(), "freshly-written control must light a cell on its page");
+    }
+
+    fn dummy() -> ArteNode {
+        ArteNode { id: String::new(), role: "control".into(), frame: None, title: String::new(),
+            serves: vec![], status: None, category: None, note: vec![], at: vec![], modified: None }
     }
 }

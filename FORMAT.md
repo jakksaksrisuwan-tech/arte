@@ -29,22 +29,20 @@ note: hashed with argon2id
 | `id` | 1 | stable, opaque, assigned once, **never reused as a label**. Identity. |
 | `role` | 1 | which layer; one of the chain in `arte.toml` (declared, not hardcoded) |
 | `subset` | 0..1 | the role's **one grouping axis** (a column), value from its `[subsets]`. Its *meaning is named per layer* in `[subset_axis]`: intent → **framing** (who/jobs/…); impl → **component** (frontend/backend/db); control → **subset** (unnamed for now — limit/ux/security/TBD); validation → **proof**. One field, never per-layer fields. Default `TBD` where a layer expects a value but none is set (e.g. control). |
-| `category` | 0..1 | **optional second axis** — only where a layer genuinely needs a *second, orthogonal* grouping on top of `subset` (rare). Usually unused: the per-layer `subset` already is the grouping (control's `subset` is its type). |
 | `title` | 1 | human label — display only, **freely renamable** (it is NOT the key) |
+| `note` | 0..n | how/what/why, one line each — design decisions live here; they **trickle down**: `arte show <id>` prints a node with every ancestor's notes (derived at read time) |
 | `serves` | 0..n | UP-link, **by id** — the node(s) this realizes (toward intent) |
-| `at` | 0..n | DOWN-link to the artifact unit: `file#unit` (`src/x.rs#fn`, `b.kicad#R1`) |
+| `at` | 0..n | DOWN-link to the artifact unit: `file#unit` (`src/x.rs#fn`, `b.kicad#R1`). A `file:anchor` suffix (grep/vitest habit) is tolerated — everything after `#` or `:` is ignored when resolving the path |
 | `status` | 0..1 | `ok` \| `ko` \| `pending` \| `justified`. On a test-backed validation it is **MEASURED** — `arte verify` runs the `at:` test and writes the result; hand-set green there is a lie the gate catches. Elsewhere it's asserted (`justified` = human-signed). |
-| `note` | 0..n | how/what/why, one line each — design decisions live here and travel to every agent that reads the node |
 | `contract` | 0..n | declared public symbol (one per line) the impl's source `at:` must expose; `arte contract` fails on a rename/drift |
 | `sha` | 0..1 | commit the node was verified against |
 
-**Two orthogonal classification axes — no more.** `subset` = the grouping column
-(*where* it sits); `category` = the type tag (*what kind*). They classify on
-different axes, so both are core. The creep rule is **redundancy, not count**:
-never add a field that re-classifies an axis that already exists — a per-role
-`component`/`persona` field just re-says `subset`. A *third* grouping field must
-earn a *third* orthogonal axis or it's creep. `modified` is **derived** (file
-mtime, or git history) — never a stored field.
+**One classification axis.** `subset` is the grouping column; per-layer meaning
+comes from `[subset_axis]`. (A reserved `category` second axis shipped in 0.1 and
+was CUT in 0.2 — never used in practice; old boards' `category:` lines still
+round-trip untouched, per the unknown-key rule.) The creep rule is **redundancy,
+not count**: never add a field that re-classifies an existing axis. `modified`
+is **derived** (file mtime, or git history) — never a stored field.
 
 Identity = `id`. Links are by `id`. `title` is a label. (A predecessor prototype
 keyed on title; one rename orphaned every link — the lesson is baked in here.)

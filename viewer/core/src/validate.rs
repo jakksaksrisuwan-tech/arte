@@ -50,14 +50,13 @@ fn walk(node: &UiNode, seen: &mut HashSet<String>) -> Result<(), ValidationError
                 }
             }
         }
-        UiNode::Progress { id, value, .. } => {
-            if !(0.0..=1.0).contains(value) {
+        UiNode::Progress { id, value, .. }
+            if !(0.0..=1.0).contains(value) => {
                 return Err(ValidationError::ProgressRange {
                     id: id.clone(),
                     value: *value,
                 });
             }
-        }
         UiNode::Panel { children, .. } => {
             for child in children {
                 walk(child, seen)?;

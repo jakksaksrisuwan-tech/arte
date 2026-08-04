@@ -73,25 +73,53 @@ ROLES — separation of authority (no agent grades its own work):
     · AUDIT between hand-offs, never trust reports: check each lane's footprint
       (tester touched no src/; implementer touched no test/ or statuses), run
       `arte verify` YOURSELF to derive status, `arte gate` to judge the round.
-    · disputes cross lanes THROUGH YOU: an implementer who believes a test is wrong
-      argues it to the orchestrator; the test-author verifies independently and fixes
-      only what it confirms. Nobody ever edits the artifact that grades them.
+    · CROSS-TALK IS ALLOWED — the walls bound writes, not speech. Roles may ask each
+      other questions directly; what they may NOT do is settle a dispute between the
+      two graded parties (that is collusion toward easy green).
+    · the SPECIFIER ARBITRATES disputes: implementer records "DISPUTE: <test> — <reason>"
+      as a note on the contested control; the specifier verifies independently and rules
+      (test wrong -> test-author fixes per the ruling; impl wrong -> dispute rejected;
+      control ambiguous -> specifier amends the control FIRST, then the fix cascades).
+      Rulings live as notes on the control — the board is the court record.
+    · FEEDBACK FLOWS UP: testers and implementers are closest to what the spec MISSED —
+      they report "SPEC-GAP: <missing thing>" and the specifier triages (mint a control,
+      amend one, or decline naming the existing home). Proposals from anyone; minting
+      only by the specifier. A spec improved from downstream is the loop working.
+      Nobody ever edits the artifact that grades them.
 
 COMMANDS:
   read     arte            (front door: show the board / guide init)
            arte observe · arte coverage · arte trace <id>
+           arte show <id>        one node + INHERITED ancestor notes (binding design
+                                 decisions trickle down the serves chain — ALWAYS read
+                                 a control/validation with `show`, not the raw file)
            arte view [dir]       live board visualiser (optional; needs arte-tui)
   build    arte add <role> "title" [--subset S --serves ID --parent P]
            arte set <id> <k> <v> · arte link/unlink <id> <t> · arte delete <id>
            arte status <id> ok|ko|pending|justified
   focus    arte working <id>     declare what you're on (pulses in the visualiser)
-  verify   arte verify           tests -> validation status (per test)
+  verify   arte verify           tests -> validation status (per test; stamps the
+                                 commit it measured against). arte.toml [verify]
+                                 setup/teardown = arte-owned clean room per run;
+                                 pristine = [paths] fails the run on any leak;
+                                 [lanes] subset = "cmd"|"skip" per-lane runners
+                                 (green in a dirty env is not green)
            arte contract         check impls expose their declared `contract:` symbols
            arte implement [--watch]   fire a headless agent to drive tests green
   gate     arte gate             coverage + verify + contract; exit 1 on ANY hole.
                                  install as the CI / pre-merge check — what's not
                                  on the board (and green) doesn't merge
   isolate  arte role <role> -- <cmd>  run <cmd> under a role's write-isolation
+  spawn    arte brief <role>     print a role's working brief — PIPE IT into a
+                                 subagent's prompt (docs are ambient; prompts are read)
+
+BOARD HYGIENE (churn kills signal — field-measured):
+  · STAMP, don't re-mint: an existing stub is YOUR home — `arte at` it. New nodes
+    only where a real gap has no home (`arte coverage` shows the holes).
+  · a finding attaches to the control that governs its surface; new control only
+    for ungoverned surface. No reflexive one-node-per-finding fan-out.
+  · descope by DELETING the subtree (`arte delete`) — the board is current scope,
+    not a wishlist; dead nodes read as work to every agent that comes after.
 
 START: run `arte observe` to read the board, then MAP your work before building it.
   Your role: if the ARTE_ROLE env var is set (you were launched via `arte role X --`),
@@ -106,6 +134,19 @@ cover pointer, drag, wheel AND keyboard (keydown on the document, GUARDED when a
 field is focused).  e.g. pointerdown empty + move → pan;  keydown Delete → remove selection.
 • give every interaction control a BEHAVIORAL validation (fire the event, assert
 the change) — needs a DOM/browser harness (@vue/test-utils or Playwright).
-• state the public CONTRACT (key exports + signatures) in each impl node's `note`.
+• INTERACTIONS BETWEEN FEATURES, not just features: enumerate every pair that can
+interact (operator × operator, mode × edge, state × event) and give the pair's
+trickiest corner its own control. Property/round-trip tests must include the
+adversarial corners BY CONSTRUCTION (e.g. unary minus WITH exponentiation),
+not only random draws — measured to remove whole bug classes (lab batch v2).
+• declare the public CONTRACT as `contract:` lines on each impl node (one export
+per line) — `arte contract` then catches renames/drift mechanically.
 • turn styling into MEASURABLE controls (colour saturation, px sizes, contrast).
+• ORDER BY VALIDATION DIFFICULTY: spec and green the HARDEST-to-validate lanes
+first (interaction, e2e, reachability) — backend-first green is a measured trap:
+fast hollow green with all the risk deferred to the end.
+• every UI surface needs a REACHABILITY control: a user can NAVIGATE to it from
+the entry screen (unit-green orphan screens are a measured failure mode), and a
+milestone `qa` validation runs the REAL app adversarially — unit tests share the
+build's blind spots; only the running artifact exposes what nobody specced.
 a control with no checkable criterion, or no validation, is a reproduction hole.

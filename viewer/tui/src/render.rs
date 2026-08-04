@@ -441,7 +441,7 @@ fn render_search(frame: &mut Frame, app: &AppState) {
             Some(Status::Justified) => " [justified]",
             None => "",
         };
-        let sect = trunc(&col.header.split(" — ").next().unwrap_or("").to_string(), 10);
+        let sect = trunc(col.header.split(" — ").next().unwrap_or(""), 10);
         let row = format!("  {sect:<10} {}{cat}{st}", trunc(&it.text, 34));
         let style = if i == s.cursor { theme::selected() } else { theme::body() };
         lines.push(Line::from(Span::styled(row, style)));
@@ -849,7 +849,7 @@ fn render_inspector(
     // Size to the WRAPPED row count (a long details/note line wraps to several
     // visual rows) so nothing below it gets clipped out of the box.
     let inner_w = (w as usize).saturating_sub(4).max(1); // borders + right pad
-    let content_rows: usize = lines.iter().map(|l| (l.width().max(1) + inner_w - 1) / inner_w).sum();
+    let content_rows: usize = lines.iter().map(|l| l.width().max(1).div_ceil(inner_w)).sum();
     let h = (content_rows as u16 + 2).min(area.height);
     // Anchor the top near a fixed spot so adding note/attachment lines grows the
     // box DOWNWARD instead of recentering (which makes it jiggle while typing).

@@ -1247,7 +1247,7 @@ impl AppState {
 
     /// Jump to the current column's header (the deliberate detour).
     pub fn focus_header(&mut self) {
-        if self.board_items().map_or(false, |i| !i.is_empty()) {
+        if self.board_items().is_some_and(|i| !i.is_empty()) {
             self.ui.cursor.row = 0;
         }
     }

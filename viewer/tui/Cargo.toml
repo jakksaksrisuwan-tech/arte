@@ -1,6 +1,6 @@
 [package]
 name = "arte-tui"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/jakksaksrisuwan-tech/arte"
@@ -12,7 +12,7 @@ name = "arte-tui"
 path = "src/main.rs"
 
 [dependencies]
-arte-core = { path = "../core", version = "0.1.0" }
+arte-core = { path = "../core", version = "0.2.0" }
 ratatui = "0.29"
 crossterm = "0.28"
 anyhow = "1"

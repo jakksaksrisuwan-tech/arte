@@ -41,7 +41,11 @@ pub fn handle_key(app: &mut AppState, key: KeyEvent) -> Outcome {
         app.ui.help = false;
         return Outcome::Continue;
     }
-    if matches!(key.code, KeyCode::Char('?')) && !matches!(app.ui.mode, Mode::Edit(_)) {
+    // While the panel's search filter is focused, EVERY printable char is query
+    // input — global letter shortcuts (o/?/…) must not fire mid-word ("todo"
+    // must not trigger o=inspect on its way in).
+    let typing_filter = app.active_board_style() == BoardStyle::Panel && !app.ui.panel_list_focus;
+    if matches!(key.code, KeyCode::Char('?')) && !matches!(app.ui.mode, Mode::Edit(_)) && !typing_filter {
         app.ui.help = true;
         return Outcome::Continue;
     }
@@ -151,7 +155,7 @@ pub fn handle_key(app: &mut AppState, key: KeyEvent) -> Outcome {
         }
         return Outcome::Continue;
     }
-    if matches!(key.code, KeyCode::Char('o')) && !matches!(app.ui.mode, Mode::Edit(_)) {
+    if matches!(key.code, KeyCode::Char('o')) && !matches!(app.ui.mode, Mode::Edit(_)) && !typing_filter {
         // o = inspect everywhere; the panel must sync its cursor first.
         if app.active_board_style() == BoardStyle::Panel {
             app.panel_open();
@@ -493,6 +497,36 @@ mod tests {
         })
         .unwrap();
         a
+    }
+
+    // Typing in the panel's search filter must NEVER trigger letter shortcuts —
+    // "todo" contains 'o' (inspect) and could contain '?' (help). Regression:
+    // user-found bug, control page, 2026-07-04.
+    #[test]
+    fn panel_filter_swallows_letter_shortcuts() {
+        let mut a = AppState::default();
+        a.apply(UiMessage::CreateSurface {
+            id: "p".into(),
+            title: "control".into(),
+            root: UiNode::Board {
+                id: "bd".into(),
+                style: BoardStyle::Panel,
+                columns: vec![BoardColumn { header: "UX".into(), key: Some("ux".into()), items: vec!["todo item".into()] }],
+            },
+        })
+        .unwrap();
+        let key = |a: &mut AppState, c: KeyCode| {
+            handle_key(a, KeyEvent::new(c, KeyModifiers::NONE));
+        };
+        assert!(!a.ui.panel_list_focus, "panel opens with the filter focused");
+        for ch in "todo?".chars() {
+            key(&mut a, KeyCode::Char(ch));
+        }
+        assert_eq!(a.ui.panel_query, "todo?"); // every char landed in the query
+        assert!(!a.ui.inspect, "'o' must not open the inspector while typing");
+        assert!(!a.ui.help, "'?' must not open help while typing");
+        key(&mut a, KeyCode::Esc); // back to list nav — shortcuts live again
+        assert!(a.ui.panel_list_focus);
     }
 
     fn ncols(a: &AppState) -> usize {
