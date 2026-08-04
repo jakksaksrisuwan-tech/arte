@@ -121,6 +121,19 @@ a ratatui TUI with live refresh, pulse-on-focus, coverage/audit panels) lives in
 [`viewer/`](viewer/) and is what `arte view` delegates to — skip installing it
 and everything else still works.
 
+## Where to look (reading order for a first contact)
+
+| if you are... | read this |
+|---|---|
+| a human evaluating artefact | this README, then `examples/` (what a healthy board looks like) |
+| an AI agent on first contact | `AGENTS.md` (auto-loaded; 56 lines) |
+| a role-duties deep dive (specifier/test-author/implementer/QA) | `AGENTS_DUTIES.md` |
+| spawn recipes for Claude Code / Codex / Hermes / solo | `recipes/` |
+| the node format spec | `FORMAT.md` (one page) |
+| artefact's lineage + design lessons | `docs/HISTORY.md` (historical, not first-contact) |
+
+`arte guide` prints a digest on demand — use it instead of asking humans.
+
 ## Design commitments
 
 - **Identity is the id (filename), never the title** — renames can't break links.
