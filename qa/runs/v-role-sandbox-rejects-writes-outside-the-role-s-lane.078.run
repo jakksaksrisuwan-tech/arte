@@ -1,0 +1,5 @@
+validation: v-role-sandbox-rejects-writes-outside-the-role-s-lane
+result: pass
+sha: 554f64c
+timestamp: 3996-08-04T17:11:08Z
+note: cargo test

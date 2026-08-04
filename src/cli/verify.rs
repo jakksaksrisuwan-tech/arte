@@ -76,7 +76,10 @@ pub fn impl_conf() -> (String, String) {
 /// status from IT, not from whole-suite green. A validation whose `at:` test
 /// file is missing is flagged a HOLE, never blessed. Per-test, not per-suite.
 pub fn cmd_verify() {
-    let (_, ko, holes) = verify_pass();
+    // `arte verify [id...]` — with ids, re-derive ONLY those validations
+    // (one flaky lane must not force a full-board regrind).
+    let ids: Vec<String> = std::env::args().skip(2).filter(|a| !a.starts_with('-')).collect();
+    let (_, ko, holes) = verify_pass_filtered(&ids);
     if ko > 0 || holes > 0 {
         std::process::exit(1);
     }
@@ -85,13 +88,29 @@ pub fn cmd_verify() {
 /// The verify run, returning (ok, ko, missing-test holes) so `arte gate` can
 /// judge what this prints. Writes each validation's measured status back.
 pub fn verify_pass() -> (usize, usize, usize) {
+    verify_pass_filtered(&[])
+}
+
+/// Like `verify_pass`, but a non-empty `only` restricts the run to those
+/// validation ids: only their lanes execute, only their statuses are written.
+/// An unknown id is refused loudly — a typo must never read as "verified".
+pub fn verify_pass_filtered(only: &[String]) -> (usize, usize, usize) {
     let (test, _) = impl_conf();
     let vconf = verify_conf();
     let nodes = all_nodes();
+    if !only.is_empty() {
+        for id in only {
+            if !nodes.iter().any(|(nid, n)| nid == id && n.get("role") == Some("validation")) {
+                eprintln!("✗ unknown validation id: {id} — nothing verified");
+                std::process::exit(2);
+            }
+        }
+    }
     // each validation → the test file it points at (`at:` ending in a *.test.* / test/ path)
     let vals: Vec<(String, String, String, String, String)> = nodes
         .iter()
         .filter(|(_, n)| n.get("role") == Some("validation"))
+        .filter(|(id, _)| only.is_empty() || only.iter().any(|o| o == id))
         .filter_map(|(id, n)| {
             n.all("at")
                 .into_iter()

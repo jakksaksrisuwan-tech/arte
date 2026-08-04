@@ -34,11 +34,23 @@ lane) right after minting, or verify runs the wrong command.
 ## NORTH STAR
 
 **`arte gate` exits 0 on ../raanyang** — i.e. every raanyang validation `ok`
-(currently 32 ok · 41 ko · 75 total, +2 uncovered intents) and every intent
-covered. The 41 ko are real product work (Stripe checkout/portal, RLS,
-realtime, offline sync…) — the loop grinds them down one subject round at a
-time. Track the count in this file after every subject round; the number only
-moves through `arte verify`, never by hand.
+and every intent covered. Track the count here after every subject round; the
+number only moves through `arte verify`, never by hand.
+
+- Round 0 baseline: 32 ok · 41 ko
+- Round 1 (2026-08-04): 40 ok · 33 ko (+8, full-board verify through the
+  live wall, ARTE_WALL_TIMEOUT_MS=120000). Taxonomy of 28 failing runs:
+  17 real assertion fails, 9 timeouts, 2 harness (keyed-profile).
+- **Round 2-3 (2026-08-04): 52 ok · 21 ko** (+12). Keyed-profile harness bug
+  fixed (runner token fallback) + 13/13 disputed specs repaired and proven
+  PASS individually. Remaining 21 ko: 3 deferred-by-ruling (fleet cells /
+  dev-state update op / disposable user), ~9 undiagnosed impl reds (drafts,
+  landing card, leads pagination, magic-link, realtime, scan-count, receipt
+  handoff, delete-confirm), 3 Stripe-lane (checkout/portal/webhook — likely
+  need Stripe test env), 3 unassessed (auth-user shop, PDPA retention,
+  reminder template), ~3 FLAKY (draft-edits, theme-system, nav-tabs passed
+  earlier same day — cross-test interference on the shared fixture; the
+  stable-pass 2-of-5 window exists for exactly this).
 
 ## THE LOOP: raanyang is the whetstone
 
@@ -84,6 +96,68 @@ just intents, the existing round discipline does the rest.
 3. `i-run-timestamps-carry-the-real-date-the-epoch-to-civil-conversi` —
    run records stamp year **3996** (2026 + 1970): the epoch→civil conversion
    in `src/lib.rs` adds the 1970 base twice. One-line fix + a unit assertion.
+
+## Subject round 1 (2026-08-04) — findings
+
+- **Wall executor head-of-line starvation (FIXED in raanyang):** one queue entry
+  with a test id unknown to the wall made `check()` silently return on the same
+  first match every tick, starving all valid entries. `public/devwall/queue.js`
+  now skips unknown-test entries (with a warn). Lesson for arte: silent `return`
+  on a work-queue head is a whole-pipeline outage — skip + report, never hold.
+- **Split-brain spec dirs (raanyang):** board `at:` → `tests/qa/` (all 69 stamps);
+  wall API reads `qa/tests/`. 76/78 files byte-identical. Missing brand spec
+  copied across; 2 stray unreferenced specs in `qa/tests` flagged, not deleted.
+  Proper fix: ONE spec dir (route.ts QA path or board-wide re-stamp). Queued.
+- Wall pipeline proven: executor claims + runs arte-queued tests; pass AND fail
+  verdicts land in qa/runs and reach the lane runner.
+- `ARTE_WALL_TIMEOUT_MS=120000` bounds each wall test — the interim form of
+  friction intent #1 (arte-native `[verify] timeout` still queued).
+
+## Subject round 2 (2026-08-04) — dispute rulings + spec repairs
+
+16 disputed controls triaged: 13 specs repaired, 3 deferred with rulings
+recorded on their controls (multiple-customers needs fleet per-origin cells;
+checklist needs a dev-state update op; delete-account needs a disposable user —
+never point it at qa1-4). Recurring spec-bug families — candidates for arte's
+embedded test-author brief (bake-in queue):
+
+1. **Stale references after remount/reload** — clicking a detached button is a
+   silent no-op; every query must re-derive from a fresh document, and reload
+   must wait for document identity to change. Hit 5 specs.
+2. **Seed through the real path** — localStorage seeds vanish when the
+   signed-in page's cloud read wins; seed the store the feature actually reads
+   (here: handoff_sheets via dev-state, incl. `occurred_on` — the table
+   defaults it to today and listSheets prefers it over created_at). Hit 4 specs.
+3. **Falsifiable asserts only** — a seeded name containing the asserted pill
+   word ("Overdue QA") made the assert vacuous; optional `if (el) fill(el)`
+   guards silently skipped wrong-named fields for months. Hit 3 specs.
+4. **Native dialogs ≠ React dialogs** — stubbing `window.confirm` does nothing
+   to a component dialog; click its real `data-qa` confirm. Hit 4 specs.
+5. **Readiness = the app's published signal, not a storage artifact** — an
+   `sb-*-auth-token` key is per-origin and true on the OUTGOING document;
+   raanyang publishes `.form-page[data-ry-shop="1"]` precisely for tests, and
+   ignoring it left a ~700ms blind window where pushes/QR clicks are no-ops.
+   Hit 3 specs (impl round 2 measurements).
+6. **Observers die with their realm** — a fetch wrapper patched before
+   navigation belongs to the discarded window and counts nothing; install on
+   the destination window after load. Also: don't count rendered rows on a
+   windowed list (slice(0,30)) — count the store. Hit 3 specs.
+
+## Subject round 4 (2026-08-04) — the 9 reds resolved
+
+Impl round: all 9 undiagnosed reds proved SPEC-side (measured disputes), zero
+src changes. Test-author round: 9/10 specs repaired + probed PASS; the 10th
+(new-lead realtime) was a real gap — `leads` absent from the supabase_realtime
+publication (subscription SUBSCRIBED, zero events). Fixed via
+`supabase/leads_realtime.sql` (replica identity full + idempotent publication
+add), commit b621639. magic-link stays red: Supabase built-in SMTP quota
+exhausted (429) — needs an SMTP provider or mailbox-less QA path, not code.
+
+**Found, queued:** `stock_staging` is ALSO unpublished on dev (its migration's
+publication line never landed — the publication held zero tables) → phone→PC
+live stock list silently dead; one-line fix + check production. Fixture drift
+worsens: probes/specs keep seeding qa1 (RT-PROBE-*, Pager-*, 200+ customers) —
+a dev-state fixture-reset op is now the highest-leverage QA-infra item.
 
 ## Known raanyang subject-round targets
 

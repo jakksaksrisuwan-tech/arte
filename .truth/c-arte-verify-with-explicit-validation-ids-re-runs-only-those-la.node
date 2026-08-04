@@ -1,0 +1,7 @@
+id: c-arte-verify-with-explicit-validation-ids-re-runs-only-those-la
+role: control
+subset: TBD
+title: arte verify with explicit validation ids re-runs only those lanes and writes only those statuses
+serves: i-arte-verify-accepts-validation-ids-to-re-derive-selectively-on
+serves: m-verify-pass-id-filter-in-src-cli-verify-rs
+status: ok

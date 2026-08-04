@@ -1,0 +1,5 @@
+validation: v-line-oriented-format-lets-git-reconcile-per-field
+result: pass
+sha: 554f64c
+timestamp: 3996-08-04T17:11:08Z
+note: cargo test

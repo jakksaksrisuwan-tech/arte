@@ -5,4 +5,4 @@ title: Adding a new role/subset in arte.toml is picked up by the binary without 
 serves: c-roles-and-subsets-used-by-the-binary-are-loaded-from-arte-toml
 at: tests/tool_design.rs
 status: ok
-sha: ffe5263
+sha: 554f64c

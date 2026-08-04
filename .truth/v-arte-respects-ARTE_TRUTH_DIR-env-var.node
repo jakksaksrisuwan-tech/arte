@@ -5,4 +5,4 @@ title: Arte respects ARTE_TRUTH_DIR env var
 serves: c-arte-respects-ARTE_TRUTH_DIR-env-var
 at: tests/test_isolation.rs
 status: ok
-sha: ffe5263
+sha: 554f64c

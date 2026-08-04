@@ -1,0 +1,4 @@
+id: i-arte-verify-accepts-validation-ids-to-re-derive-selectively-on
+role: intent
+subset: TBD
+title: arte verify accepts validation ids to re-derive selectively - one flaky test does not force a full-board regrind

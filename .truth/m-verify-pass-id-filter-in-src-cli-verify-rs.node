@@ -1,0 +1,6 @@
+id: m-verify-pass-id-filter-in-src-cli-verify-rs
+role: impl
+subset: TBD
+title: verify_pass id filter in src/cli/verify.rs
+serves: i-arte-verify-accepts-validation-ids-to-re-derive-selectively-on
+at: src/cli/verify.rs
