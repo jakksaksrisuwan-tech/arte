@@ -6,4 +6,4 @@ title: Line-oriented format lets git reconcile per-field
 serves: c3
 at: tests/tool_design.rs
 status: ok
-sha: cf997ce
+sha: a2cdb9b

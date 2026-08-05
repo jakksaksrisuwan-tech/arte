@@ -352,6 +352,12 @@ pub fn load_runs(v_id: &str) -> Vec<RunRec> {
 ///
 /// A validation with no history is unproven, never proven-by-default.
 pub fn proven_detector(v_id: &str) -> bool {
+    // The node stamp is the durable record (run history is pruned to the
+    // stable-pass window, so a red ages out after a few greens); the history
+    // scan still covers boards whose reds predate the stamp.
+    if let Some(n) = load_node(v_id) {
+        if n.get("proven").is_some() { return true; }
+    }
     load_runs(v_id).iter().any(|r| r.result == "fail" || r.result == "ko")
 }
 

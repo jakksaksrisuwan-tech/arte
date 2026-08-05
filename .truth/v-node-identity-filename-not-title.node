@@ -6,4 +6,4 @@ title: Node identity = filename, not title
 serves: c1
 at: tests/tool_design.rs
 status: ok
-sha: cf997ce
+sha: a2cdb9b

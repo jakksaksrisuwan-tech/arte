@@ -6,4 +6,4 @@ serves: c-status-values-are-exactly-ok-ko-pending-justified
 at: tests/tetrahedron.rs
 at: tests/tetrahedron.rs
 status: ok
-sha: cf997ce
+sha: a2cdb9b

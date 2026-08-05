@@ -5,4 +5,4 @@ title: Every CLI subcommand dispatches and exits per spec
 serves: c-every-cli-subcommand-focus-gate-lifecycle-role-cycle-routes-th
 at: tests/cli_surface.rs
 status: ok
-sha: cf997ce
+sha: a2cdb9b

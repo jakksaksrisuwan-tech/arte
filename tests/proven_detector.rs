@@ -68,7 +68,8 @@ fn run(dir: &PathBuf, args: &[&str]) -> (String, bool) {
 }
 
 #[test]
-fn all_passes_is_not_proven_any_fail_is() {
+fn proven_detector_derivation_and_stickiness() {
+    provenness_survives_run_history_pruning();
     let dir = scratch("derive");
     seed_validation(&dir, "v-never-red", &["pass", "pass", "pass"]);
     seed_validation(&dir, "v-once-red", &["fail", "pass"]);
@@ -86,6 +87,32 @@ fn all_passes_is_not_proven_any_fail_is() {
     assert!(
         !proven_detector("v-no-history-at-all"),
         "no run history means unproven, never proven-by-default"
+    );
+    let _ = fs::remove_dir_all(&dir);
+}
+
+// NOTE: the in-process assertions live in ONE test on purpose — cargo runs
+// tests as parallel threads in a single process, and ARTE_TRUTH_DIR /
+// ARTE_RUNS_DIR are process-global, so splitting them raced (measured: the
+// history-derivation asserts failed because a sibling test repointed the dirs).
+fn provenness_survives_run_history_pruning() {
+    // The defect this guards: run history is pruned to the stable-pass window,
+    // so a recorded red ages out after a few green runs and proven-ness would
+    // silently evaporate — measured live, 8 freshly fault-proven validations
+    // all read unproven again after their re-derivations. The node stamp is
+    // the durable record.
+    let dir = scratch("sticky");
+    seed_validation(&dir, "v-aged-out", &["pass", "pass", "pass", "pass", "pass"]);
+    // its red is gone from history, but the node carries the earned stamp
+    let node = dir.join("truth").join("v-aged-out.node");
+    let txt = fs::read_to_string(&node).expect("read node");
+    fs::write(&node, format!("{txt}proven: observed-red\n")).expect("stamp node");
+    std::env::set_var("ARTE_RUNS_DIR", dir.join("runs"));
+    std::env::set_var("ARTE_TRUTH_DIR", dir.join("truth"));
+    assert!(
+        proven_detector("v-aged-out"),
+        "proven-ness did not survive history pruning — the stamp on the node must be durable, \
+         otherwise every adversary round's evidence evaporates after 5 green runs"
     );
     let _ = fs::remove_dir_all(&dir);
 }

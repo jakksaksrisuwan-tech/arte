@@ -267,6 +267,13 @@ pub fn record_status(id: &str, pass: bool, head: &Option<String>, cmd: &str) {
     let mut n = load_or_exit(id);
     n.set_field("status", if pass { "ok" } else { "ko" });
     if let Some(h) = head { n.set_field("sha", &h); }
+    // PROVEN-ness must be STICKY: run history is pruned to the stable-pass
+    // window, so a recorded red ages out after a few green runs and the proof
+    // that this test CAN fail would silently evaporate. Stamp it on the node
+    // the moment a red is observed — earned once, kept.
+    if !pass && n.get("proven").is_none() {
+        n.set_field("proven", "observed-red");
+    }
     save_node(id, &n);
     let rec = RunRec {
         seq: String::new(),

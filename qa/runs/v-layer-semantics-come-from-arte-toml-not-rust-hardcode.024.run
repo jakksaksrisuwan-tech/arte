@@ -1,0 +1,5 @@
+validation: v-layer-semantics-come-from-arte-toml-not-rust-hardcode
+result: pass
+sha: a2cdb9b
+timestamp: 3996-08-05T03:00:07Z
+note: cargo test
