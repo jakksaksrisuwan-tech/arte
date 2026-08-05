@@ -5,5 +5,5 @@ title: Every role lane text and the agent guide state the commit protocol
 serves: c-embedded-role-briefs-carry-the-commit-protocol-workers-never-c
 at: tests/brief_protocol.rs
 status: ok
-sha: 19d29819991a2895ad8e4c385950132325f3fca9
+sha: 39806da991bc1a3e770cb5b0e3399e6ad58436b4
 test_sha: 0cdeca5d6672c02c297358e11331acb05662ae79

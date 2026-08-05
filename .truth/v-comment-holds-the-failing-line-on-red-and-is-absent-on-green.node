@@ -1,0 +1,9 @@
+id: v-comment-holds-the-failing-line-on-red-and-is-absent-on-green
+role: validation
+subset: proof
+title: comment holds the failing line on red and is absent on green
+serves: c-verify-writes-the-failing-reason-to-comment-on-red-and-clears
+at: tests/comment_glance.rs
+status: ok
+sha: 39806da991bc1a3e770cb5b0e3399e6ad58436b4
+test_sha: 8f7829f724262e181354d1cced0e603b2252d346

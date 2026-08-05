@@ -547,6 +547,7 @@ struct ArteNode {
     note: Vec<String>,
     at: Vec<String>,
     sha: Option<String>, // commit the status was measured against
+    comment: Option<String>, // why it is red, at a glance (absent when green)
     modified: Option<u64>, // file mtime (working-tree edit time)
 }
 
@@ -568,7 +569,7 @@ fn load_arte_nodes(dir: &str) -> Vec<ArteNode> {
             .map(|d| d.as_secs());
         let mut n = ArteNode {
             id: String::new(), role: String::new(), frame: None, title: String::new(),
-            serves: Vec::new(), status: None, category: None, note: Vec::new(), at: Vec::new(), sha: None, modified,
+            serves: Vec::new(), status: None, category: None, note: Vec::new(), at: Vec::new(), sha: None, comment: None, modified,
         };
         for line in text.lines() {
             let l = line.trim();
@@ -590,6 +591,9 @@ fn load_arte_nodes(dir: &str) -> Vec<ArteNode> {
                 // Was missing: every `sha:` line fell through to `_ => {}`, so
                 // the board reserved a sha column and had nothing to put in it.
                 "sha" => n.sha = Some(v),
+                // Same dropped-field bug as `sha`: the board has a comment
+                // column and the importer never filled it.
+                "comment" => n.comment = Some(v),
                 _ => {}
             }
         }
@@ -686,6 +690,7 @@ fn arte_appstate(nodes: &[ArteNode], chain: &[String], frames: &std::collections
                         note: n.note.clone(),
                         at: n.at.clone(),
                         sha: n.sha.clone(),
+                        comment: n.comment.clone(),
                         modified: n.modified,
                         ..Default::default()
                     })
@@ -908,7 +913,7 @@ mod pulse_tests {
         let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
         let n = ArteNode {
             id: "c-x".into(), role: "control".into(), frame: None, title: "fresh work".into(),
-            serves: vec![], status: None, category: None, note: vec![], at: vec![], sha: None, modified: Some(now - 5),
+            serves: vec![], status: None, category: None, note: vec![], at: vec![], sha: None, comment: None, modified: Some(now - 5),
         };
         let old = ArteNode { modified: Some(now - 300), id: "c-old".into(), title: "stale".into(), ..dummy() };
         let w = arte_working("/nonexistent-dir", &[n, old]);
@@ -922,7 +927,7 @@ mod pulse_tests {
         let n = ArteNode {
             id: "c-fresh".into(), role: "control".into(), frame: Some("ux".into()),
             title: "fresh control".into(), serves: vec![], status: None, category: None,
-            note: vec![], at: vec![], sha: None, modified: Some(now - 3),
+            note: vec![], at: vec![], sha: None, comment: None, modified: Some(now - 3),
         };
         let nodes = vec![n];
         let chain = vec!["intent".to_string(), "impl".into(), "control".into(), "validation".into()];
@@ -935,7 +940,7 @@ mod pulse_tests {
 
     fn dummy() -> ArteNode {
         ArteNode { id: String::new(), role: "control".into(), frame: None, title: String::new(),
-            serves: vec![], status: None, category: None, note: vec![], at: vec![], sha: None, modified: None }
+            serves: vec![], status: None, category: None, note: vec![], at: vec![], sha: None, comment: None, modified: None }
     }
 }
 

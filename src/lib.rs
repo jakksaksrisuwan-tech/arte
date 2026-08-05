@@ -407,6 +407,37 @@ pub fn test_sha_drift(path: &Path, recorded: &str) -> bool {
     }
 }
 
+/// The single line from a failed run worth putting on the board.
+///
+/// A board that says "red" and nothing else makes every reader go dig through
+/// logs. Prefer the line that names the failure — an assertion, an expectation,
+/// a refusal — and fall back to the last thing the run said. Trimmed to one
+/// line because `comment` is read at a glance, in a column, next to a status.
+pub fn salient_failure(output: &str) -> String {
+    const MARKERS: [&str; 8] = [
+        "assertion failed", "AssertionError", "✗", "FAIL", "panicked at",
+        "Error:", "error:", "expected",
+    ];
+    let lines: Vec<&str> = output.lines().map(str::trim).filter(|l| !l.is_empty()).collect();
+    // last match wins: later output is closer to the actual failure than the
+    // first thing that happened to contain the word "error".
+    let pick = MARKERS
+        .iter()
+        .filter_map(|m| lines.iter().rposition(|l| l.contains(m)))
+        .max()
+        .map(|i| lines[i])
+        .or_else(|| lines.last().copied())
+        .unwrap_or("");
+    // strip a leading harness prefix like "[arte-lane] FAIL v-x: " so the
+    // remaining words are the ones a human needs.
+    let cleaned = pick
+        .split_once("] ")
+        .map(|(_, rest)| rest)
+        .unwrap_or(pick)
+        .trim();
+    trunc(cleaned, 160)
+}
+
 /// Has this validation ever been OBSERVED RED? A green that has never failed
 /// is indistinguishable from a test that cannot fail — the red-first discipline
 /// exists so every validation demonstrates it detects something. Derived from

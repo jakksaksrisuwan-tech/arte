@@ -5,5 +5,5 @@ title: arte-add-intent produces a node linked up the chain
 serves: c-arte-add-intent-mints-a-new-node-with-at-least-one-serves-link
 at: tests/cli_surface.rs
 status: ok
-sha: 19d29819991a2895ad8e4c385950132325f3fca9
+sha: 39806da991bc1a3e770cb5b0e3399e6ad58436b4
 test_sha: 2a721861a724e648e41b07fc436cb44f4106808e

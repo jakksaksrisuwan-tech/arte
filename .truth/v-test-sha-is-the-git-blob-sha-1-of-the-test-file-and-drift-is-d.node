@@ -5,5 +5,5 @@ title: test_sha is the git-blob sha-1 of the test file and drift is detected
 serves: c-verify-records-the-sha-1-of-the-test-artifact-and-staleness-is
 at: tests/test_sha.rs
 status: ok
-sha: 19d29819991a2895ad8e4c385950132325f3fca9
+sha: 39806da991bc1a3e770cb5b0e3399e6ad58436b4
 test_sha: 47aa7d3802d5e019546be64a2cbce04cdce2ea54

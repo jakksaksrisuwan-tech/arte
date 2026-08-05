@@ -1,0 +1,7 @@
+id: c-verify-writes-the-failing-reason-to-comment-on-red-and-clears
+role: control
+subset: TBD
+title: verify writes the failing reason to comment on red and clears it on green
+serves: i-a-red-validation-says-why-at-a-glance-the-board-carries-the-fa
+serves: m-comment-capture-in-verify-and-comment-passthrough-in-the-viewe
+status: ok

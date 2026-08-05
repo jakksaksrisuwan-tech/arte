@@ -5,5 +5,5 @@ title: Briefs state serialization falsifiability self-cleanup and the verify-vs-
 serves: c-embedded-briefs-teach-the-campaign-doctrine-serialize-derivati
 at: tests/discipline_brief.rs
 status: ok
-sha: 19d29819991a2895ad8e4c385950132325f3fca9
+sha: 39806da991bc1a3e770cb5b0e3399e6ad58436b4
 test_sha: 046d5dec905a0154aeaa04700887940415374295

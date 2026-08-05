@@ -5,5 +5,5 @@ title: Each commit message references an existing intent id
 serves: c-every-change-commits-with-its-intent-id-so-authorship-is-trace
 at: tests/tetrahedron_gaps.rs
 status: ok
-sha: 19d29819991a2895ad8e4c385950132325f3fca9
+sha: 39806da991bc1a3e770cb5b0e3399e6ad58436b4
 test_sha: 570b8db2b2a0273598e26fb1345bdfdfcd7846e5

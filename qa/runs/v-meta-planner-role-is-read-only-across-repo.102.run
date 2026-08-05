@@ -1,5 +1,0 @@
-validation: v-meta-planner-role-is-read-only-across-repo
-result: pass
-sha: 19d2981
-timestamp: 3996-08-05T05:20:46Z
-note: cargo test

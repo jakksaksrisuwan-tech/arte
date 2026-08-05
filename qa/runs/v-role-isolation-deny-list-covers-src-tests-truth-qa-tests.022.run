@@ -1,5 +1,0 @@
-validation: v-role-isolation-deny-list-covers-src-tests-truth-qa-tests
-result: pass
-sha: a2cdb9b
-timestamp: 3996-08-05T03:00:04Z
-note: cargo test

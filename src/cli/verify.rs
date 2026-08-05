@@ -152,6 +152,8 @@ pub fn verify_pass_filtered(only: &[String]) -> (usize, usize, usize) {
     // this exact commit and re-run the test.
     let head: Option<String> = crate::git_head_sha1();
     let mut file_pass: HashMap<String, Option<bool>> = HashMap::new();
+    // key -> the one line worth putting on the board when that lane fails
+    let mut failure_line: HashMap<String, String> = HashMap::new();
     let mut written: HashSet<String> = HashSet::new();
     let mut skipped = 0usize;
     let (mut ok, mut ko, mut holes) = (0usize, 0usize, 0usize);
@@ -171,7 +173,25 @@ pub fn verify_pass_filtered(only: &[String]) -> (usize, usize, usize) {
                     format!("{cmd_base} {a_full}")
                 };
                 println!("• {cmd}");
-                Some(Command::new("sh").arg("-c").arg(&cmd).env("ARTE_VERIFY_TMP", &scratch).status().map(|s| s.success()).unwrap_or(false))
+                // Capture rather than stream: a red validation has to be able to
+                // say WHY on the board, and that means holding on to the words
+                // the test printed. Output is echoed straight after, so nothing
+                // is hidden — it just arrives per-test instead of per-line.
+                let out = Command::new("sh").arg("-c").arg(&cmd).env("ARTE_VERIFY_TMP", &scratch).output();
+                match out {
+                    Ok(o) => {
+                        let text = format!("{}{}", String::from_utf8_lossy(&o.stdout), String::from_utf8_lossy(&o.stderr));
+                        print!("{text}");
+                        let passed = o.status.success();
+                        if !passed { failure_line.insert(key.clone(), crate::salient_failure(&text)); }
+                        Some(passed)
+                    }
+                    Err(e) => {
+                        println!("  ⚠ could not run: {e}");
+                        failure_line.insert(key.clone(), format!("could not run lane command: {e}"));
+                        Some(false)
+                    }
+                }
             } else {
                 None
             };
@@ -184,7 +204,7 @@ pub fn verify_pass_filtered(only: &[String]) -> (usize, usize, usize) {
                 written.insert(id.clone());
             }
             Some(false) => {
-                record_status(id, false, &head, &cmd_base);
+                record_status_with(id, false, &head, &cmd_base, failure_line.get(&key).map(String::as_str));
                 ko += 1;
                 written.insert(id.clone());
             }
@@ -204,7 +224,7 @@ pub fn verify_pass_filtered(only: &[String]) -> (usize, usize, usize) {
         let key = if name_filter && !anchor.is_empty() { format!("{cmd_base}\x00{f}\x00{anchor}") } else { format!("{cmd_base}\x00{f}") };
         match file_pass.get(&key).copied().flatten() {
             Some(true) => { record_status(id, true, &head, &cmd_base); ok += 1; }
-            Some(false) => { record_status(id, false, &head, &cmd_base); ko += 1; }
+            Some(false) => { record_status_with(id, false, &head, &cmd_base, failure_line.get(&key).map(String::as_str)); ko += 1; }
             None => { holes += 1; }
         }
     }
@@ -266,6 +286,13 @@ pub fn verify_pass_filtered(only: &[String]) -> (usize, usize, usize) {
 /// Hoisted out of the verify loop so callers (cmd_cycle) can also flush
 /// per-test verdicts when they need to.
 pub fn record_status(id: &str, pass: bool, head: &Option<String>, cmd: &str) {
+    record_status_with(id, pass, head, cmd, None)
+}
+
+/// As `record_status`, plus the failing line to put on the board. `comment` is
+/// the at-a-glance answer to "why is this red" — written on red, CLEARED on
+/// green (a stale failure line on a passing row reads as broken when it is not).
+pub fn record_status_with(id: &str, pass: bool, head: &Option<String>, cmd: &str, failure: Option<&str>) {
     let mut n = load_or_exit(id);
     n.set_field("status", if pass { "ok" } else { "ko" });
     if let Some(h) = head { n.set_field("sha", &h); }
@@ -275,6 +302,11 @@ pub fn record_status(id: &str, pass: bool, head: &Option<String>, cmd: &str) {
     // the moment a red is observed — earned once, kept.
     if !pass && n.get("proven").is_none() {
         n.set_field("proven", "observed-red");
+    }
+    match (pass, failure) {
+        (false, Some(line)) if !line.is_empty() => n.set_field("comment", line),
+        (false, _) => { n.unset_field("comment"); }
+        (true, _) => { n.unset_field("comment"); }
     }
     // The tested sha-1: the git-blob digest of the test artifact this status was
     // measured against. `sha:` is git HEAD, which says nothing when the test is

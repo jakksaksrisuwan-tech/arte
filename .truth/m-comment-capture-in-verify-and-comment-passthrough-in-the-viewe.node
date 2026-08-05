@@ -1,0 +1,6 @@
+id: m-comment-capture-in-verify-and-comment-passthrough-in-the-viewe
+role: impl
+subset: TBD
+title: comment capture in verify and comment passthrough in the viewer importer
+serves: i-a-red-validation-says-why-at-a-glance-the-board-carries-the-fa
+at: src/cli/verify.rs
