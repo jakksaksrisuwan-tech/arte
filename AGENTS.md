@@ -34,6 +34,21 @@ THE LOOP (do this, in order):
      how a suite goes flaky (deterministic = enforced start → action → delta).
   5. `arte coverage` shows VERIFIED (test-backed + green), not just covered.
 
+VERIFICATION DISCIPLINE (each of these was learned by breaking a real board):
+  - ONE VERIFY AT A TIME. Derivations SERIALIZE: a destructive setup hook
+    (fixture reset) makes concurrent runs wipe each other's seeds mid-flight —
+    the reds it manufactures look exactly like real bugs. Never leave a verify
+    or gate running in a background you can lose: an orphaned gate re-derives
+    the board underneath everyone for as long as it lives.
+  - Re-derive ONE validation with `arte verify <id...>` — a full-board regrind
+    re-rolls shared-fixture interference on every run.
+  - VERIFY-GREEN IS NOT GATE-GREEN. `arte gate` is the judgment: it also
+    demands completeness — every intent realized in every layer, every control
+    validation-backed, ZERO orphan src files, contracts held. Run the full
+    gate, foregrounded, as the ONLY process, before declaring done.
+  - Honesty raises the bar and that is the point: admitting an unspecced
+    feature (new intent/impl) creates coverage gaps to close, not a regression.
+
 BE DETAILED — this is where boards fail and reproductions diverge:
   - decompose components to their BEHAVIOUR. for software, one control per
     INTERACTION:  "<event> on <target> -> <observable state change>".

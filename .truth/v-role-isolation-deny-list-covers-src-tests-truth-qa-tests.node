@@ -5,4 +5,4 @@ title: Role-isolation deny-list covers src/tests/.truth/qa-tests
 serves: c-role-isolation-table-is-the-os-enforced-deny-list-per-lane
 at: tests/cli_surface.rs
 status: ok
-sha: 2d2d7a3
+sha: 51d4920

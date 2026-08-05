@@ -1,0 +1,5 @@
+validation: v-one-node-per-file-enables-git-line-merge
+result: pass
+sha: 51d4920
+timestamp: 3996-08-05T02:08:04Z
+note: cargo test

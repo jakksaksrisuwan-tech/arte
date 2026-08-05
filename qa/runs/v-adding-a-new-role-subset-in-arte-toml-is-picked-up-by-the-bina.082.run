@@ -1,0 +1,5 @@
+validation: v-adding-a-new-role-subset-in-arte-toml-is-picked-up-by-the-bina
+result: pass
+sha: 51d4920
+timestamp: 3996-08-05T02:08:06Z
+note: cargo test

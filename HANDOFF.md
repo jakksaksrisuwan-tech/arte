@@ -41,6 +41,26 @@ number only moves through `arte verify`, never by hand.
 - Round 1 (2026-08-04): 40 ok · 33 ko (+8, full-board verify through the
   live wall, ARTE_WALL_TIMEOUT_MS=120000). Taxonomy of 28 failing runs:
   17 real assertion fails, 9 timeouts, 2 harness (keyed-profile).
+- Endgame (2026-08-05): first full gate FAILED on completeness (4 reds ·
+  5 uncovered controls · 2 intent gaps · 99 orphan src files) — verify-green
+  ≠ gate-green. Then: orphans 99→0 (103 honest stamps, 7 new impl nodes,
+  3 new intents ADMITTED: team/feedback/QA-surface), 5 new controls + 5 new
+  validations authored + PASS (team seat-cap / one-owner invariant /
+  invite-claim / feedback / QA-boundary), events-attribution closed via
+  get_events, one vacuous green rebuilt, flappers made order-independent.
+  Incidents: an orphaned background gate corrupted results (→ run-lock intent
+  on arte's board, serialization doctrine); both subagents hit session limits
+  and the last mile went solo. Board now ~81 controls ok. FINAL gate running
+  at handoff (PID-tracked, nohup + monitor — never pipe-background a gate).
+- Rounds 5-9 (2026-08-04/05): 59 → 62 → 66 → 70 → 72 → **73 ok · 0 ko**.
+  Everything that got there: selective verify (arte feature), fixture_reset as
+  the enforced initial condition (verify setup hook), spec-lint gating the
+  suite (parse/steps/js-compile — the wedge class died), console capture in
+  run records, runner no-steps guard, mint_otp_link (mailbox-less magic-link),
+  sign_stripe_webhook (real constructEvent boundary), cleanup_leads()
+  extraction (PDPA rule verified for the first time), method:human relics
+  rewritten machine-grade, one vacuous green caught and made real
+  (history-groups). Full-gate run pending as the final judgment.
 - **Round 2-3 (2026-08-04): 52 ok · 21 ko** (+12). Keyed-profile harness bug
   fixed (runner token fallback) + 13/13 disputed specs repaired and proven
   PASS individually. Remaining 21 ko: 3 deferred-by-ruling (fleet cells /

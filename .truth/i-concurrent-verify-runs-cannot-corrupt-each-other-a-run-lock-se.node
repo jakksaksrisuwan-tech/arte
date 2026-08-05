@@ -1,0 +1,4 @@
+id: i-concurrent-verify-runs-cannot-corrupt-each-other-a-run-lock-se
+role: intent
+subset: TBD
+title: Concurrent verify runs cannot corrupt each other - a run lock serializes derivation against a shared fixture

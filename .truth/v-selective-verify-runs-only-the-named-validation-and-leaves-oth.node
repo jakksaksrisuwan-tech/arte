@@ -5,4 +5,4 @@ title: Selective verify runs only the named validation and leaves other statuses
 serves: c-arte-verify-with-explicit-validation-ids-re-runs-only-those-la
 at: tests/selective_verify.rs
 status: ok
-sha: 2d2d7a3
+sha: 51d4920

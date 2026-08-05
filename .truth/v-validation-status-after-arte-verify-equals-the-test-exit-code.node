@@ -5,4 +5,4 @@ title: Validation status after arte verify equals the test exit code
 serves: c-status-is-derived-from-test-runs-arte-verify-never-hand-assert
 at: tests/tetrahedron_gaps.rs
 status: ok
-sha: 2d2d7a3
+sha: 51d4920
