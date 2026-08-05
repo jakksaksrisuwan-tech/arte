@@ -137,6 +137,8 @@ struct Disp {
     at: Vec<String>,
     parent: String,
     status: Option<String>,
+    sha: String,
+    test_sha: String,
 }
 
 pub fn observe() {
@@ -176,6 +178,8 @@ pub fn observe() {
             at: n.all("at").iter().map(|s| s.to_string()).collect(),
             parent: n.get("parent").unwrap_or("").to_string(),
             status: n.get("status").map(String::from),
+            sha: n.get("sha").unwrap_or("").to_string(),
+            test_sha: n.get("test_sha").unwrap_or("").to_string(),
         });
     }
     let mut roles: Vec<String> = conf.chain.clone();
@@ -220,7 +224,18 @@ fn print_node(d: &Disp, all: &[Disp], all_ids: &HashSet<String>, depth: usize) {
     };
     let at = if d.at.is_empty() { String::new() } else { format!("  @{}", d.at.join(",")) };
     let dangling_parent = if !d.parent.is_empty() && !all_ids.contains(&d.parent) { format!("  ⚠parent {}(missing)", d.parent) } else { String::new() };
-    println!("{pad}{}  {}{status}{up}{at}{dangling_parent}", d.id, d.title);
+    // The measured-against commit, shown on the board itself: a green whose
+    // commit you cannot see is not something anyone can reproduce. `!` marks a
+    // test artifact whose content changed since the status was measured.
+    let stamp = if d.status.is_some() && !d.sha.is_empty() {
+        let short: String = d.sha.chars().take(7).collect();
+        let drift = if !d.test_sha.is_empty() && !d.at.is_empty() {
+            let p = at_path(&d.at[0]).to_string();
+            if crate::test_sha_drift(std::path::Path::new(&p), &d.test_sha) { "!" } else { "" }
+        } else { "" };
+        format!("  ⎇{short}{drift}")
+    } else { String::new() };
+    println!("{pad}{}  {}{status}{stamp}{up}{at}{dangling_parent}", d.id, d.title);
     let mut kids: Vec<&Disp> = all.iter().filter(|c| c.parent == d.id).collect();
     kids.sort_by(|a, b| a.id.cmp(&b.id));
     for c in kids {

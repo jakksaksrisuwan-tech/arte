@@ -546,6 +546,7 @@ struct ArteNode {
     category: Option<String>, // the "type" tag (a11y / authz / …)
     note: Vec<String>,
     at: Vec<String>,
+    sha: Option<String>, // commit the status was measured against
     modified: Option<u64>, // file mtime (working-tree edit time)
 }
 
@@ -567,7 +568,7 @@ fn load_arte_nodes(dir: &str) -> Vec<ArteNode> {
             .map(|d| d.as_secs());
         let mut n = ArteNode {
             id: String::new(), role: String::new(), frame: None, title: String::new(),
-            serves: Vec::new(), status: None, category: None, note: Vec::new(), at: Vec::new(), modified,
+            serves: Vec::new(), status: None, category: None, note: Vec::new(), at: Vec::new(), sha: None, modified,
         };
         for line in text.lines() {
             let l = line.trim();
@@ -586,6 +587,9 @@ fn load_arte_nodes(dir: &str) -> Vec<ArteNode> {
                 "category" => n.category = Some(v),
                 "note" => n.note.push(v),
                 "at" => n.at.push(v),
+                // Was missing: every `sha:` line fell through to `_ => {}`, so
+                // the board reserved a sha column and had nothing to put in it.
+                "sha" => n.sha = Some(v),
                 _ => {}
             }
         }
@@ -681,6 +685,7 @@ fn arte_appstate(nodes: &[ArteNode], chain: &[String], frames: &std::collections
                         category: n.category.clone(),
                         note: n.note.clone(),
                         at: n.at.clone(),
+                        sha: n.sha.clone(),
                         modified: n.modified,
                         ..Default::default()
                     })
@@ -903,7 +908,7 @@ mod pulse_tests {
         let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
         let n = ArteNode {
             id: "c-x".into(), role: "control".into(), frame: None, title: "fresh work".into(),
-            serves: vec![], status: None, category: None, note: vec![], at: vec![], modified: Some(now - 5),
+            serves: vec![], status: None, category: None, note: vec![], at: vec![], sha: None, modified: Some(now - 5),
         };
         let old = ArteNode { modified: Some(now - 300), id: "c-old".into(), title: "stale".into(), ..dummy() };
         let w = arte_working("/nonexistent-dir", &[n, old]);
@@ -917,7 +922,7 @@ mod pulse_tests {
         let n = ArteNode {
             id: "c-fresh".into(), role: "control".into(), frame: Some("ux".into()),
             title: "fresh control".into(), serves: vec![], status: None, category: None,
-            note: vec![], at: vec![], modified: Some(now - 3),
+            note: vec![], at: vec![], sha: None, modified: Some(now - 3),
         };
         let nodes = vec![n];
         let chain = vec!["intent".to_string(), "impl".into(), "control".into(), "validation".into()];
@@ -930,6 +935,39 @@ mod pulse_tests {
 
     fn dummy() -> ArteNode {
         ArteNode { id: String::new(), role: "control".into(), frame: None, title: String::new(),
-            serves: vec![], status: None, category: None, note: vec![], at: vec![], modified: None }
+            serves: vec![], status: None, category: None, note: vec![], at: vec![], sha: None, modified: None }
+    }
+}
+
+#[cfg(test)]
+mod arte_import_tests {
+    use super::*;
+
+    /// v-viewer-board-shows-the-measured-against-commit
+    /// The bug this pins: `load_arte_nodes` had no "sha" arm, so every `sha:`
+    /// line fell through `_ => {}`. The TUI reserved a 9-char sha column
+    /// (render.rs `sha_w`) and rendered `item.sha`, which was always None — the
+    /// board displayed a blank column for a field the board files carried all
+    /// along. Recording evidence nobody can see is most of the way to not
+    /// having it.
+    #[test]
+    fn importer_carries_sha_from_node_files() {
+        let dir = std::env::temp_dir().join(format!("arte-tui-sha-{}", std::process::id()));
+        let truth = dir.join(".truth");
+        std::fs::create_dir_all(&truth).expect("scratch");
+        std::fs::write(
+            truth.join("v-probe.node"),
+            "id: v-probe\nrole: validation\nsubset: proof\ntitle: probe\nstatus: ok\nsha: 5c2826e8b360b0366d28d8d0bb3d48c09b9f61de\nat: tests/probe.rs\n",
+        )
+        .expect("node");
+        let nodes = load_arte_nodes(dir.to_str().unwrap());
+        let probe = nodes.iter().find(|n| n.id == "v-probe").expect("node loaded");
+        assert_eq!(
+            probe.sha.as_deref(),
+            Some("5c2826e8b360b0366d28d8d0bb3d48c09b9f61de"),
+            "the viewer must carry `sha:` from the node file — the board has a sha column and \
+             an importer that drops the field renders it permanently blank"
+        );
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }
