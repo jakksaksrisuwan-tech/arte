@@ -1,0 +1,5 @@
+validation: v-selective-verify-runs-only-the-named-validation-and-leaves-oth
+result: pass
+sha: 19d29819991a2895ad8e4c385950132325f3fca9
+timestamp: 3996-08-05T05:21:59Z
+note: cargo test

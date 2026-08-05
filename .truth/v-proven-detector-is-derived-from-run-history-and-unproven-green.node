@@ -5,4 +5,5 @@ title: proven_detector is derived from run history and unproven greens are surfa
 serves: c-arte-reports-which-validations-have-never-been-observed-red-pr
 at: tests/proven_detector.rs
 status: ok
-sha: a2cdb9b
+sha: 19d29819991a2895ad8e4c385950132325f3fca9
+test_sha: a02e92f86c991a5ed587542ee3fe85a90a83b96e

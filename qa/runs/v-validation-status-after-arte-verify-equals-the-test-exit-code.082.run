@@ -1,5 +1,0 @@
-validation: v-validation-status-after-arte-verify-equals-the-test-exit-code
-result: pass
-sha: 51d4920
-timestamp: 3996-08-05T02:08:07Z
-note: cargo test

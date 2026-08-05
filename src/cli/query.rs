@@ -251,6 +251,30 @@ pub fn cmd_show() {
         println!();
         println!("{note}");
     }
+    // REPRODUCE: a measured green is only evidence if someone else can re-run
+    // it. Print the exact recipe — the commit to check out, the command that
+    // measured it (from the newest run record), and the test artifact's digest
+    // so an untracked test can be confirmed byte-identical.
+    if n.get("role") == Some("validation") {
+        if let (Some(sha), Some(at)) = (n.get("sha"), n.get("at")) {
+            let cmd = crate::load_runs(&id.to_string()).first().map(|r| r.note.clone()).unwrap_or_default();
+            println!();
+            println!("reproduce:");
+            println!("  git checkout {sha}");
+            if !cmd.is_empty() { println!("  {cmd}   # against {at}"); }
+            else { println!("  <lane command>   # against {at}"); }
+            if let Some(t) = n.get("test_sha") {
+                let path = at_path(at);
+                let now = crate::git_blob_sha1(std::path::Path::new(path));
+                let mark = match &now {
+                    Some(cur) if cur == t => "matches",
+                    Some(_) => "DRIFTED — test content changed since measurement",
+                    None => "test file missing",
+                };
+                println!("  git hash-object {path}   # expect {t} ({mark})");
+            }
+        }
+    }
     let inherited = inherited_notes(n, &by_id);
     if !inherited.is_empty() {
         println!("\ninherited context (ancestor notes — BINDING for this node):");

@@ -1,0 +1,7 @@
+id: c-verify-records-the-sha-1-of-the-test-artifact-and-staleness-is
+role: control
+subset: TBD
+title: verify records the sha-1 of the test artifact and staleness is reported when that content changes
+serves: i-a-green-is-tied-to-the-exact-test-content-that-produced-it-eve
+serves: m-sha1-test-sha-recording-in-src-lib-rs-and-src-cli-verify-rs
+status: ok

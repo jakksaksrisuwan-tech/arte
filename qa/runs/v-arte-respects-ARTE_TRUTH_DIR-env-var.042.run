@@ -1,0 +1,5 @@
+validation: v-arte-respects-ARTE_TRUTH_DIR-env-var
+result: pass
+sha: 19d29819991a2895ad8e4c385950132325f3fca9
+timestamp: 3996-08-05T05:21:58Z
+note: cargo test

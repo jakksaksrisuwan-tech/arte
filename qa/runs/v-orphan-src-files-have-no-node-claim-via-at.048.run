@@ -1,0 +1,5 @@
+validation: v-orphan-src-files-have-no-node-claim-via-at
+result: pass
+sha: 19d2981
+timestamp: 3996-08-05T05:20:46Z
+note: cargo test

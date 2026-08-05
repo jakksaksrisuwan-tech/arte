@@ -1,0 +1,6 @@
+id: m-sha1-test-sha-recording-in-src-lib-rs-and-src-cli-verify-rs
+role: impl
+subset: TBD
+title: sha1 + test_sha recording in src/lib.rs and src/cli/verify.rs
+serves: i-a-green-is-tied-to-the-exact-test-content-that-produced-it-eve
+at: src/lib.rs

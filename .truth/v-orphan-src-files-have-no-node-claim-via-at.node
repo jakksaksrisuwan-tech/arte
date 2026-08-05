@@ -5,4 +5,5 @@ title: arte gate reports zero orphan src files
 serves: c-orphan-src-files-have-no-node-claim-via-at
 at: tests/orphan_check.rs
 status: ok
-sha: a2cdb9b
+sha: 19d29819991a2895ad8e4c385950132325f3fca9
+test_sha: 11bded48eeda9877f3672491591508e7f29784dc

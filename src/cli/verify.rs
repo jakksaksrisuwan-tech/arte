@@ -148,7 +148,9 @@ pub fn verify_pass_filtered(only: &[String]) -> (usize, usize, usize) {
     }
     let before = snap_pristine(&vconf.pristine);
     let lane_cmd = |subset: &str| -> String { vconf.lanes.get(subset).cloned().unwrap_or_else(|| test.clone()) };
-    let head: Option<String> = crate::git_short_head();
+    // Full sha-1: the point of recording it is that someone can `git checkout`
+    // this exact commit and re-run the test.
+    let head: Option<String> = crate::git_head_sha1();
     let mut file_pass: HashMap<String, Option<bool>> = HashMap::new();
     let mut written: HashSet<String> = HashSet::new();
     let mut skipped = 0usize;
@@ -273,6 +275,17 @@ pub fn record_status(id: &str, pass: bool, head: &Option<String>, cmd: &str) {
     // the moment a red is observed — earned once, kept.
     if !pass && n.get("proven").is_none() {
         n.set_field("proven", "observed-red");
+    }
+    // The tested sha-1: the git-blob digest of the test artifact this status was
+    // measured against. `sha:` is git HEAD, which says nothing when the test is
+    // untracked — the subject repo's whole spec suite is gitignored, so specs
+    // were rewritten dozens of times under an unchanged HEAD. Reproduce with
+    // `git hash-object <file>`.
+    if let Some(at) = n.get("at").map(str::to_string) {
+        let path = crate::cli::query::at_path(&at).to_string();
+        if let Some(digest) = crate::git_blob_sha1(std::path::Path::new(&path)) {
+            n.set_field("test_sha", &digest);
+        }
     }
     save_node(id, &n);
     let rec = RunRec {

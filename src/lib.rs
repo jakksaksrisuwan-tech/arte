@@ -345,6 +345,62 @@ pub fn load_runs(v_id: &str) -> Vec<RunRec> {
 
 /// Stable? Looks at the last STABLE_PASS_WINDOW runs; pass count must hit
 /// STABLE_PASS_REQUIRED. Returns (passed_window, is_stable).
+// ─── SHA-1 (test-artifact fingerprinting) ───────────────────────────────────
+// Hand-rolled because this crate takes no dependencies. Not used for security —
+// it exists so a green can name the exact test CONTENT that produced it, and
+// the git-blob form means `git hash-object <file>` reproduces the digest even
+// for files git does not track (the subject repo's whole spec suite is
+// gitignored, so `sha:` — git HEAD — proved nothing about the test that ran).
+pub fn sha1_hex(data: &[u8]) -> String {
+    let mut h: [u32; 5] = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0];
+    let bitlen = (data.len() as u64).wrapping_mul(8);
+    let mut msg = data.to_vec();
+    msg.push(0x80);
+    while msg.len() % 64 != 56 { msg.push(0); }
+    msg.extend_from_slice(&bitlen.to_be_bytes());
+    for block in msg.chunks(64) {
+        let mut w = [0u32; 80];
+        for i in 0..16 {
+            w[i] = u32::from_be_bytes([block[4 * i], block[4 * i + 1], block[4 * i + 2], block[4 * i + 3]]);
+        }
+        for i in 16..80 {
+            w[i] = (w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16]).rotate_left(1);
+        }
+        let (mut a, mut b, mut c, mut d, mut e) = (h[0], h[1], h[2], h[3], h[4]);
+        for (i, wi) in w.iter().enumerate() {
+            let (f, k) = match i {
+                0..=19 => ((b & c) | ((!b) & d), 0x5A827999u32),
+                20..=39 => (b ^ c ^ d, 0x6ED9EBA1),
+                40..=59 => ((b & c) | (b & d) | (c & d), 0x8F1BBCDC),
+                _ => (b ^ c ^ d, 0xCA62C1D6),
+            };
+            let tmp = a.rotate_left(5).wrapping_add(f).wrapping_add(e).wrapping_add(k).wrapping_add(*wi);
+            e = d; d = c; c = b.rotate_left(30); b = a; a = tmp;
+        }
+        h[0] = h[0].wrapping_add(a); h[1] = h[1].wrapping_add(b); h[2] = h[2].wrapping_add(c);
+        h[3] = h[3].wrapping_add(d); h[4] = h[4].wrapping_add(e);
+    }
+    h.iter().map(|x| format!("{x:08x}")).collect()
+}
+
+/// Git's blob digest: sha1("blob <len>\0" + content). Reproducible with
+/// `git hash-object <file>` — including for untracked/ignored files.
+pub fn git_blob_sha1(path: &Path) -> Option<String> {
+    let content = fs::read(path).ok()?;
+    let mut buf = format!("blob {}\0", content.len()).into_bytes();
+    buf.extend_from_slice(&content);
+    Some(sha1_hex(&buf))
+}
+
+/// Has the test artifact changed since the recorded digest? A missing file or
+/// unreadable path counts as drift — a green must never outlive its test.
+pub fn test_sha_drift(path: &Path, recorded: &str) -> bool {
+    match git_blob_sha1(path) {
+        Some(now) => now != recorded,
+        None => true,
+    }
+}
+
 /// Has this validation ever been OBSERVED RED? A green that has never failed
 /// is indistinguishable from a test that cannot fail — the red-first discipline
 /// exists so every validation demonstrates it detects something. Derived from
@@ -439,6 +495,21 @@ pub fn trunc(s: &str, n: usize) -> String {
 // ─── Staleness envelope ─────────────────────────────────────────────────────
 
 /// Current HEAD as a short sha, or None when not in a git repo.
+/// FULL 40-char HEAD sha-1 — this is what gets RECORDED (`sha:` on a node is
+/// "the commit version this status was measured against"). Short shas are for
+/// display only: 7 hex chars is ~268M values, which collides in a long-lived
+/// repo and is not durable enough to be evidence.
+pub fn git_head_sha1() -> Option<String> {
+    std::process::Command::new("git")
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        .filter(|s| !s.is_empty())
+}
+
+/// Short form, for printing. Never for recording.
 pub fn git_short_head() -> Option<String> {
     std::process::Command::new("git")
         .args(["rev-parse", "--short", "HEAD"])
@@ -454,8 +525,10 @@ pub fn git_short_head() -> Option<String> {
 /// recorded sha (a rewind — we don't surface "you're behind yourself").
 pub fn staleness(n: &Node, ahead: &mut HashMap<String, i64>) -> Option<String> {
     let recorded = n.get("sha")?;
-    let head = git_short_head()?;
-    if recorded == head { return None; }
+    let head = git_head_sha1()?;
+    // Legacy boards recorded the short form; treat a prefix match as current so
+    // upgrading arte does not flag every node as stale.
+    if recorded == head || (recorded.len() >= 7 && head.starts_with(recorded)) { return None; }
     let range = format!("{recorded}..HEAD");
     let ahead_n = *ahead.entry(recorded.to_string()).or_insert_with(|| {
         std::process::Command::new("git")

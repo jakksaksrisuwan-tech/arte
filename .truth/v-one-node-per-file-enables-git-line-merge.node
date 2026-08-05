@@ -6,4 +6,5 @@ title: One node per file enables git line merge
 serves: c2
 at: tests/tool_design.rs
 status: ok
-sha: a2cdb9b
+sha: 19d29819991a2895ad8e4c385950132325f3fca9
+test_sha: c8c8b84a139eba54a10f4b1b65072ea736b02612

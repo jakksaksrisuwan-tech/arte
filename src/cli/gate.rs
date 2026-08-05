@@ -47,6 +47,32 @@ pub fn cmd_gate() {
         println!("   (red-first, or run an adversary round: inject the fault, prove red, restore, prove green)");
     }
 
+    // Test-artifact drift: a green measured against a test whose CONTENT has
+    // since changed is stale, and `sha:`/git cannot see it when the test is
+    // untracked. Advisory, like staleness — re-verify to re-earn it.
+    let drifted: Vec<&String> = nodes
+        .iter()
+        .filter(|(_, n)| n.get("role") == Some("validation") && n.get("status") == Some("ok"))
+        .filter(|(_, n)| match (n.get("at"), n.get("test_sha")) {
+            (Some(at), Some(recorded)) => {
+                let p = crate::cli::query::at_path(at).to_string();
+                crate::test_sha_drift(std::path::Path::new(&p), recorded)
+            }
+            _ => false,
+        })
+        .map(|(id, _)| id)
+        .collect();
+    if !drifted.is_empty() {
+        println!("⚠  {} green validation(s) whose TEST CONTENT changed since measurement:", drifted.len());
+        for id in drifted.iter().take(10) {
+            println!("      · {id}");
+        }
+        if drifted.len() > 10 {
+            println!("      … and {} more", drifted.len() - 10);
+        }
+        println!("   (re-run `arte verify <id>` — the green was earned against different test content)");
+    }
+
     let mut fails: Vec<String> = Vec::new();
     if intents == 0 { fails.push("no intents on the board — nothing to gate against".into()); }
     if gaps > 0 { fails.push(format!("{gaps} intent(s) not realized in every layer")); }
