@@ -1,0 +1,5 @@
+validation: v-validation-status-after-arte-verify-equals-the-test-exit-code
+result: pass
+sha: cf997ce
+timestamp: 3996-08-05T02:47:57Z
+note: cargo test

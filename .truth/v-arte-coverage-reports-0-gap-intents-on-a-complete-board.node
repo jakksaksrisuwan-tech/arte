@@ -5,4 +5,4 @@ title: arte coverage reports 0 gap-intents on a complete board
 serves: c-every-intent-has-at-least-one-impl-one-control-and-one-validat
 at: tests/tetrahedron_gaps.rs
 status: ok
-sha: 51d4920
+sha: cf997ce

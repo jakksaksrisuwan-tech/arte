@@ -24,6 +24,29 @@ pub fn cmd_gate() {
         println!("⏱  {stale} node(s) verified against an OLDER commit than HEAD — re-run `arte verify`");
     }
 
+    // Unproven detectors: a GREEN validation that has never been observed RED
+    // is indistinguishable from a test that cannot fail. Advisory like
+    // staleness — the shape is whole, but the board should not bank these
+    // silently. Fix by red-first authoring, or by an adversary round:
+    // inject the fault the validation claims to catch, prove it goes red with
+    // the expected message, restore, prove it returns green.
+    let unproven: Vec<&String> = nodes
+        .iter()
+        .filter(|(_, n)| n.get("role") == Some("validation") && n.get("status") == Some("ok"))
+        .map(|(id, _)| id)
+        .filter(|id| !crate::proven_detector(id))
+        .collect();
+    if !unproven.is_empty() {
+        println!("⚠  {} green validation(s) NEVER observed red — unproven detectors:", unproven.len());
+        for id in unproven.iter().take(10) {
+            println!("      · {id}");
+        }
+        if unproven.len() > 10 {
+            println!("      … and {} more", unproven.len() - 10);
+        }
+        println!("   (red-first, or run an adversary round: inject the fault, prove red, restore, prove green)");
+    }
+
     let mut fails: Vec<String> = Vec::new();
     if intents == 0 { fails.push("no intents on the board — nothing to gate against".into()); }
     if gaps > 0 { fails.push(format!("{gaps} intent(s) not realized in every layer")); }

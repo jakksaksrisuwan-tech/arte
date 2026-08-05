@@ -5,4 +5,4 @@ title: Agent guide and test-author lane state the enforced initial-condition doc
 serves: c-embedded-briefs-teach-the-initial-condition-doctrine-enforce-v
 at: tests/initial_condition_brief.rs
 status: ok
-sha: 51d4920
+sha: cf997ce

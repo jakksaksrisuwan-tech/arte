@@ -48,6 +48,11 @@ VERIFICATION DISCIPLINE (each of these was learned by breaking a real board):
     gate, foregrounded, as the ONLY process, before declaring done.
   - Honesty raises the bar and that is the point: admitting an unspecced
     feature (new intent/impl) creates coverage gaps to close, not a regression.
+  - A GREEN THAT HAS NEVER BEEN RED IS UNPROVEN. `arte coverage` reports
+    PROVEN (observed red at least once, from run history); `arte gate` names
+    the unproven ones. Earn it red-first (stamp + verify while failing, THEN
+    implement), or by an adversary round: inject the fault the validation
+    claims to catch, prove red with the expected message, restore, prove green.
 
 BE DETAILED — this is where boards fail and reproductions diverge:
   - decompose components to their BEHAVIOUR. for software, one control per

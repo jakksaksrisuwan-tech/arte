@@ -1,0 +1,8 @@
+id: v-proven-detector-is-derived-from-run-history-and-unproven-green
+role: validation
+subset: proof
+title: proven_detector is derived from run history and unproven greens are surfaced
+serves: c-arte-reports-which-validations-have-never-been-observed-red-pr
+at: tests/proven_detector.rs
+status: ok
+sha: cf997ce

@@ -428,6 +428,20 @@ pub fn coverage_pass() -> (usize, usize, usize) {
     for r in &rows { println!("{r}"); }
     println!("  ──");
     println!("  {} intents · {covered} covered · {verified} VERIFIED (test-backed+green) · {gaps} gap(s)", intents.len());
+    // PROVEN: of the green validations, how many have ever been observed red?
+    // An unproven green may be a test that cannot fail (measured: the first
+    // never-red validation fault-injected on the subject repo was fake).
+    {
+        let greens: Vec<&String> = nodes
+            .iter()
+            .filter(|(_, n)| n.get("role") == Some("validation") && n.get("status") == Some("ok"))
+            .map(|(id, _)| id)
+            .collect();
+        if !greens.is_empty() {
+            let proven = greens.iter().filter(|id| crate::proven_detector(id)).count();
+            println!("  {proven}/{} green validations PROVEN (observed red at least once)", greens.len());
+        }
+    }
     (intents.len(), gaps, holes.len())
 }
 

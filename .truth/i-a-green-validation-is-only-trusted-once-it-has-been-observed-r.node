@@ -1,0 +1,4 @@
+id: i-a-green-validation-is-only-trusted-once-it-has-been-observed-r
+role: intent
+subset: TBD
+title: A green validation is only trusted once it has been observed red - unproven detectors are visible

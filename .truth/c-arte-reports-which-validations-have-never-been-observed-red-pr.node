@@ -1,0 +1,7 @@
+id: c-arte-reports-which-validations-have-never-been-observed-red-pr
+role: control
+subset: TBD
+title: arte reports which validations have never been observed red - proven vs unproven detectors from run history
+serves: i-a-green-validation-is-only-trusted-once-it-has-been-observed-r
+serves: m-proven-detector-derivation-in-src-lib-rs-and-its-surfacing-in
+status: ok

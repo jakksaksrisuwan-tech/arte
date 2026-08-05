@@ -1,0 +1,5 @@
+validation: v-meta-planner-role-is-read-only-across-repo
+result: pass
+sha: cf997ce
+timestamp: 3996-08-05T02:47:55Z
+note: cargo test

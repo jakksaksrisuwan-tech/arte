@@ -1,0 +1,6 @@
+id: m-proven-detector-derivation-in-src-lib-rs-and-its-surfacing-in
+role: impl
+subset: TBD
+title: proven-detector derivation in src/lib.rs and its surfacing in coverage and gate
+serves: i-a-green-validation-is-only-trusted-once-it-has-been-observed-r
+at: src/cli/gate.rs
