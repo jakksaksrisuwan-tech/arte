@@ -781,7 +781,7 @@ fn render_inspector(
             lines.push(field("comment", item.comment.clone().unwrap_or_else(|| dash.clone())));
         }
         if let Some(s) = &item.sha {
-            lines.push(field("sha", s.chars().take(8).collect()));
+            lines.push(field("sha", s.chars().take(arte_core::SHA_DISPLAY_LEN).collect()));
         }
         if item.derived {
             lines.push(field("derived", "yes (parentless by design)".into()));
@@ -1114,7 +1114,7 @@ fn render_sheet_board(
             w: rows_area.width,
             hit: arte_core::state::Hit::Cell { col: ci, row: ii + 1 },
         });
-        let sha = item.sha.as_deref().map(|s| s.chars().take(8).collect::<String>()).unwrap_or_else(|| "—".into());
+        let sha = item.sha.as_deref().map(|s| s.chars().take(arte_core::SHA_DISPLAY_LEN).collect::<String>()).unwrap_or_else(|| "—".into());
         // status = a colour-filled chip (whole cell), so it reads at a glance
         let chip = match item.status {
             // colour-filled chip for a real status; "—" follows the ROW style so it

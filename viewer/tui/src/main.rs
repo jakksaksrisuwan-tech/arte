@@ -970,4 +970,22 @@ mod arte_import_tests {
         );
         let _ = std::fs::remove_dir_all(&dir);
     }
+
+    /// Reported from use: "some columns have 7, some have 8 chars". Cause was
+    /// not the data — arte records the full 40-char sha-1 — but the surfaces:
+    /// the CLI truncated to 7 and the TUI to 8, and a board mid-re-derive holds
+    /// both widths, so the column came out ragged. One shared constant now.
+    fn both_surfaces_render_one_sha_width() {
+        let legacy = "35591c9";
+        let full = "5c2826e8b360b0366d28d8d0bb3d48c09b9f61de";
+        let show = |s: &str| -> String { s.chars().take(arte_core::SHA_DISPLAY_LEN).collect() };
+        assert_eq!(
+            show(legacy).chars().count(),
+            show(full).chars().count(),
+            "a legacy short sha and a full sha-1 must render at the same width — \
+             otherwise the sha column is ragged depending on when each row was verified"
+        );
+        assert_eq!(show(full), "5c2826e", "display must be a prefix of the recorded sha");
+        assert_eq!(show(legacy), legacy, "a 7-char legacy record renders whole");
+    }
 }

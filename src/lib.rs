@@ -58,6 +58,12 @@ pub fn dispatch_path() -> String { read_env_dirs().2 }
 /// Stable-pass threshold: how many of the most recent N runs must pass before
 /// `arte status <id> ok` is allowed without --force, and before `arte cycle`
 /// auto-promotes. Matches the tetrahedron doc (2/3 of last 5).
+/// How many chars of a commit sha to SHOW (never to record — `sha:` is the full
+/// 40-char sha-1). One width, so the CLI and the TUI agree; they used to
+/// truncate to 7 and 8 respectively. Mirrored by `arte_core::SHA_DISPLAY_LEN` —
+/// this crate is zero-dep on purpose.
+pub const SHA_DISPLAY_LEN: usize = 7;
+
 pub const STABLE_PASS_REQUIRED: usize = 2;
 pub const STABLE_PASS_WINDOW: usize = 5;
 

@@ -228,7 +228,7 @@ fn print_node(d: &Disp, all: &[Disp], all_ids: &HashSet<String>, depth: usize) {
     // commit you cannot see is not something anyone can reproduce. `!` marks a
     // test artifact whose content changed since the status was measured.
     let stamp = if d.status.is_some() && !d.sha.is_empty() {
-        let short: String = d.sha.chars().take(7).collect();
+        let short: String = d.sha.chars().take(crate::SHA_DISPLAY_LEN).collect();
         let drift = if !d.test_sha.is_empty() && !d.at.is_empty() {
             let p = at_path(&d.at[0]).to_string();
             if crate::test_sha_drift(std::path::Path::new(&p), &d.test_sha) { "!" } else { "" }
